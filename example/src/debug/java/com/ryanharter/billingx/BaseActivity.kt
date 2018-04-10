@@ -1,0 +1,43 @@
+package com.ryanharter.billingx
+
+import android.os.Bundle
+import android.support.annotation.LayoutRes
+import android.support.v4.widget.DrawerLayout
+import android.support.v7.app.AppCompatActivity
+import android.view.LayoutInflater
+import android.view.View
+import android.view.ViewGroup
+import com.ryanharter.billingx.debug.DebugDrawer
+
+open class BaseActivity : AppCompatActivity() {
+
+  lateinit var drawer: DrawerLayout
+  lateinit var debugDrawer: DebugDrawer
+
+  override fun onCreate(savedInstanceState: Bundle?) {
+    super.onCreate(savedInstanceState)
+
+    super.setContentView(R.layout.debug_activity)
+    drawer = findViewById(R.id.drawer)
+    debugDrawer = supportFragmentManager.findFragmentById(R.id.debug_drawer) as DebugDrawer
+  }
+
+  override fun setContentView(@LayoutRes layoutResID: Int) {
+    val contentParent = findViewById<ViewGroup>(R.id.content_frame)
+    contentParent.removeAllViews()
+    LayoutInflater.from(this).inflate(layoutResID, contentParent)
+  }
+
+  override fun setContentView(view: View?) {
+    val contentParent = findViewById<ViewGroup>(R.id.content_frame)
+    contentParent.removeAllViews()
+    contentParent.addView(view)
+  }
+
+  override fun setContentView(view: View?, params: ViewGroup.LayoutParams?) {
+    val contentParent = findViewById<ViewGroup>(R.id.content_frame)
+    contentParent.removeAllViews()
+    contentParent.addView(view, params)
+  }
+
+}

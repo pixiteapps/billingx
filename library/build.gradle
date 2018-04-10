@@ -2,11 +2,11 @@ apply plugin: 'com.android.library'
 apply plugin: 'kotlin-android'
 
 android {
-  compileSdkVersion 26
+  compileSdkVersion rootProject.ext.compileSdkVersion
 
   defaultConfig {
-    minSdkVersion 21
-    targetSdkVersion 26
+    minSdkVersion rootProject.ext.minSdkVersion
+    targetSdkVersion rootProject.ext.targetSdkVersion
     versionCode 1
     versionName "1.0"
 
@@ -22,22 +22,22 @@ android {
 }
 
 dependencies {
-  api 'com.android.billingclient:billing:1.0'
+  api libs.billingClient
 
-  implementation 'com.android.support:appcompat-v7:26.1.0'
-  implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
-  implementation 'com.android.support.constraint:constraint-layout:1.0.2'
+  implementation libs.appCompat
+  implementation libs.kotlinStdlibJdk7
+  implementation libs.constraintLayout
 
-  testImplementation 'junit:junit:4.12'
-  testImplementation "com.google.truth:truth:0.34"
-  testImplementation 'com.vaadin.external.google:android-json:0.0.20131108.vaadin1'
-  testImplementation "com.nhaarman:mockito-kotlin:1.5.0"
-  testImplementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
-  testImplementation "org.jetbrains.kotlin:kotlin-runtime:$kotlin_version"
-  testImplementation 'org.jetbrains.kotlin:kotlin-test:1.0.6'
+  testImplementation libs.junit
+  testImplementation libs.truth
+  testImplementation libs.androidJson
+  testImplementation libs.mockitoKotlin
+  testImplementation libs.kotlinStdlib
+  testImplementation libs.kotlinRuntime
+  testImplementation libs.kotlinTest
 
-  androidTestImplementation 'com.android.support.test:runner:1.0.1'
-  androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.1'
+  androidTestImplementation libs.androidTestRunner
+  androidTestImplementation libs.espressoCore
 }
 repositories {
   mavenCentral()

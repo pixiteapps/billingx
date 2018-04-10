@@ -1,5 +1,5 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.ryanharter.billingx">
+    package="com.ryanharter.android.billingx">
 
   <application>
     <activity android:name=".DebugBillingActivity"

@@ -1,3 +1,5 @@
 <resources>
   <string name="app_name">BillingX</string>
+  <string name="status_subscribed">Subscribed</string>
+  <string name="status_not_subscribed">Not Subscribed</string>
 </resources>

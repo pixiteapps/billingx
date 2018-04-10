@@ -2,6 +2,10 @@
 
 Extensions for the Android Billing Support library to allow fake purchases and transaction management in debug builds.
 
+![Dialog Screenshot](assets/dialog.png)
+
+BillingX uses a local store for sku and purchase information, allowing you to use a `BillingClient` implementation to make purchases and query information without needing to connect to the Play Store. 
+
 ## Usage
 
 Simply inject the `DebugBillingClient` instead of the standard `BillingClient` from the support library.  Then you can continue to use the `BillingClient` as you normally would.

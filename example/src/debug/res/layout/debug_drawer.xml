@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="300dp"
+    android:layout_height="match_parent"
+    android:background="#fafafa"
+    tools:ignore="HardcodedText"
+    android:fillViewport="true"
+    >
+
+  <LinearLayout
+      android:layout_width="match_parent"
+      android:layout_height="wrap_content"
+      android:orientation="vertical"
+      android:padding="8dp"
+      android:id="@+id/container"
+      >
+
+  <RelativeLayout
+      android:layout_width="match_parent"
+      android:layout_height="wrap_content"
+      android:layout_marginBottom="8dp"
+      >
+
+    <ImageView
+        android:id="@+id/dev_drawer_icon"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentEnd="true"
+        android:layout_alignParentRight="true"
+        android:layout_marginStart="4dp"
+        android:layout_marginLeft="4dp"
+        android:src="@mipmap/ic_launcher"
+        tools:ignore="ContentDescription"
+        />
+
+    <TextView
+        android:id="@+id/dev_drawer_title"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="BillingX Debug"
+        android:layout_toStartOf="@id/dev_drawer_icon"
+        android:layout_toLeftOf="@id/dev_drawer_icon"
+        style="@style/TextAppearance.AppCompat.Widget.ActionBar.Title"
+        />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/dev_drawer_title"
+        android:layout_toStartOf="@id/dev_drawer_icon"
+        android:layout_toLeftOf="@id/dev_drawer_icon"
+        android:text="Development Settings"
+        style="@style/TextAppearance.AppCompat.Widget.ActionBar.Subtitle"
+        />
+
+  </RelativeLayout>
+
+  <TextView
+      android:layout_width="match_parent"
+      android:layout_height="wrap_content"
+      android:text="State"
+      android:padding="4dp"
+      android:layout_marginTop="8dp"
+      style="@style/TextAppearance.AppCompat.Subhead"
+      />
+
+  <Switch
+      android:id="@+id/subscription"
+      android:layout_width="match_parent"
+      android:layout_height="?attr/listPreferredItemHeight"
+      android:text="Active Subscription"
+      />
+
+  </LinearLayout>
+</ScrollView>

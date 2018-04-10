@@ -1,0 +1,32 @@
+ext {
+  compileSdkVersion = 27
+  buildToolsVersion = "27.1.0"
+  minSdkVersion = 21
+  targetSdkVersion = 27
+
+  def archVersion = '1.1.1'
+
+  libs = [
+
+      androidJson               : 'com.vaadin.external.google:android-json:0.0.20131108.vaadin1',
+      androidTestRunner         : 'com.android.support.test:runner:1.0.1',
+      appCompat                 : 'com.android.support:appcompat-v7:26.1.0',
+      archLifecycleCommon       : "android.arch.lifecycle:common:${archVersion}",
+      archLifecycleCompiler     : "android.arch.lifecycle:compiler:${archVersion}",
+      archLifecycleExtensions   : "android.arch.lifecycle:extensions:${archVersion}",
+      archLifecycleRuntime      : "android.arch.lifecycle:runtime:${archVersion}",
+      billingClient             : 'com.android.billingclient:billing:1.0',
+      billingX                  : project(':library'),
+      constraintLayout          : 'com.android.support.constraint:constraint-layout:1.0.2',
+      design                    : 'com.android.support:design:27.1.0',
+      espressoCore              : 'com.android.support.test.espresso:espresso-core:3.0.1',
+      junit                     : 'junit:junit:4.12',
+      kotlinStdlib              : "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version",
+      kotlinStdlibJdk7          : "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version",
+      kotlinRuntime             : "org.jetbrains.kotlin:kotlin-runtime:$kotlin_version",
+      kotlinTest                : 'org.jetbrains.kotlin:kotlin-test:1.0.6',
+      mockitoKotlin             : "com.nhaarman:mockito-kotlin:1.5.0",
+      threeTenABP                 : 'com.jakewharton.threetenabp:threetenabp:1.0.5',
+      truth                     : "com.google.truth:truth:0.34",
+  ]
+}
