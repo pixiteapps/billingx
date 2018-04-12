@@ -24,8 +24,6 @@ class DebugDrawer : Fragment() {
     activity!!.injection().subscriptionRepository
   }
 
-  private var autoSwitch: Boolean = false
-
   override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
     return inflater.inflate(R.layout.debug_drawer, container, false)
   }
@@ -34,19 +32,12 @@ class DebugDrawer : Fragment() {
     super.onActivityCreated(savedInstanceState)
 
     subsRepo.subscribed.observe(this, Observer {
-      autoSwitch = true
       subscriptionSwitch.isChecked = it == true
     })
 
-    subscriptionSwitch.setOnCheckedChangeListener { _, isChecked ->
-      if (autoSwitch) {
-        // Handles cases where the switch was flipped outside of our control
-        autoSwitch = false
-        return@setOnCheckedChangeListener
-      }
-
-      val ctx = context ?: return@setOnCheckedChangeListener
-      if (isChecked) {
+    subscriptionSwitch.setOnClickListener {
+      val ctx = context ?: return@setOnClickListener
+      if (subscriptionSwitch.isChecked) {
         BillingStore.getInstance(ctx)
             .addPurchase(
                 PurchaseBuilder(
