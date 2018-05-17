@@ -10,7 +10,7 @@ BillingX uses a local store for sku and purchase information, allowing you to us
 
 Simply inject the `DebugBillingClient` instead of the standard `BillingClient` from the support library.  Then you can continue to use the `BillingClient` as you normally would.
 
-If you're not using a dependency injection framework like [Dagger](), you can create a simply factory to get the appropriate instance. 
+If you're not using a dependency injection framework like [Dagger](), you can create a simple factory to get the appropriate instance. 
 
 In `src/release/java`:
 

@@ -4,6 +4,7 @@ import android.os.Bundle
 import android.support.annotation.LayoutRes
 import android.support.v4.widget.DrawerLayout
 import android.support.v7.app.AppCompatActivity
+import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -20,6 +21,14 @@ open class BaseActivity : AppCompatActivity() {
     super.setContentView(R.layout.debug_activity)
     drawer = findViewById(R.id.drawer)
     debugDrawer = supportFragmentManager.findFragmentById(R.id.debug_drawer) as DebugDrawer
+
+    // Peek the drawer to user's know it's there.
+    drawer.openDrawer(Gravity.END)
+    drawer.postDelayed({
+      if (!isFinishing && drawer.isDrawerOpen(Gravity.END)) {
+        drawer.closeDrawer(Gravity.END)
+      }
+    }, 800)
   }
 
   override fun setContentView(@LayoutRes layoutResID: Int) {

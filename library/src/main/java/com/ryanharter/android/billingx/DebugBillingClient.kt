@@ -65,6 +65,7 @@ class DebugBillingClient(private val activity: Activity,
   }
 
   override fun isFeatureSupported(feature: String?): Int {
+    // TODO Update BillingStore to allow feature enable/disable
     return if (!connected) {
       BillingResponse.SERVICE_DISCONNECTED
     } else {
