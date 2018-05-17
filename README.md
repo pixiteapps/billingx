@@ -84,7 +84,7 @@ releaseImplementation 'com.android.billingclient:billing:1.0'
 ## License
 
 ```
-Copyright 2018 Ryan Harter.
+Copyright 2018 Pixite LLC.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
