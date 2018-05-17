@@ -8,7 +8,7 @@ android {
   defaultConfig {
     minSdkVersion rootProject.ext.minSdkVersion
     targetSdkVersion rootProject.ext.targetSdkVersion
-    applicationId "com.ryanharter.billingx.example"
+    applicationId "com.pixite.billingx.example"
     versionCode 1
     versionName "1.0"
     testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"

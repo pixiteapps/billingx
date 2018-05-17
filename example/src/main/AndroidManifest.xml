@@ -1,6 +1,6 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    package="com.ryanharter.billingx"
+    package="com.pixite.billingx"
     >
 
   <application
@@ -13,7 +13,7 @@
       tools:ignore="AllowBackup,GoogleAppIndexingWarning"
       >
 
-    <activity android:name=".MainActivity">
+    <activity android:name="com.pixite.billingx.MainActivity">
       <intent-filter>
         <action android:name="android.intent.action.MAIN" />
         <category android:name="android.intent.category.LAUNCHER" />
