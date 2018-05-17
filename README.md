@@ -70,6 +70,8 @@ fun setupPurchases(activity: Activity) {
 
 ## Download
 
+> BillingX isn't quite ready for release so, for now, you'll have to...
+
 Clone the repo...
 
 Import the billingx library only into your debug builds and use the standard billing support library in your release builds. 
