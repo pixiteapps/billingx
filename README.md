@@ -17,7 +17,8 @@ isn't for you.  You should check out [Register](https://github.com/NYTimes/Regis
 ## Todo
 
 * Implement IAB consumption.
-* Add config activity to manage inventory. 
+* Add config activity to manage inventory.
+* Add support for specifying supported feature return types. 
 
 ## Usage
 
