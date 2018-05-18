@@ -15,7 +15,7 @@ class BillingClientFactory {
   }
 
   private fun initializeData(activity: Activity) {
-    BillingStore.getInstance(activity)
+    BillingStore.defaultStore(activity)
         .clearProducts()
         .addProduct(
             SkuDetailsBuilder(

@@ -22,11 +22,17 @@ import java.util.concurrent.Executors
 class DebugBillingClient(private val activity: Activity,
                          private val purchasesUpdatedListener: PurchasesUpdatedListener,
                          private val backgroundExecutor: Executor = Executors.newSingleThreadExecutor(),
-                         private val billingStore: BillingStore = BillingStore.getInstance(activity),
+                         private val billingStore: BillingStore = BillingStore.defaultStore(activity),
                          private val localBroadcastInteractor: LocalBroadcastInteractor = AndroidLocalBroadcastInteractor()) : BillingClient() {
 
   companion object {
     private const val TAG = "DebugBillingClient"
+
+    /**
+     * Creates a new DebugBillingClientBuilder for Java consumers.  Kotlin users should prefer
+     * the constructor.
+     */
+    @JvmStatic fun newBuilder(activity: Activity) = DebugBillingClientBuilder(activity)
   }
 
   private var billingClientStateListener: BillingClientStateListener? = null
@@ -36,7 +42,8 @@ class DebugBillingClient(private val activity: Activity,
     override fun onReceive(context: Context?, intent: Intent?) {
       // Receiving the result from local broadcast and triggering a callback on listener.
       @BillingResponse
-      val responseCode = intent?.getIntExtra(DebugBillingActivity.RESPONSE_CODE, BillingResponse.ERROR) ?: BillingResponse.ERROR
+      val responseCode = intent?.getIntExtra(DebugBillingActivity.RESPONSE_CODE, BillingResponse.ERROR)
+          ?: BillingResponse.ERROR
       val resultData = intent?.getBundleExtra(DebugBillingActivity.RESPONSE_BUNDLE)
       val purchases = BillingHelper.extractPurchases(resultData)
 
@@ -115,5 +122,34 @@ class DebugBillingClient(private val activity: Activity,
       return InternalPurchasesResult(BillingResponse.DEVELOPER_ERROR, /* purchasesList */ null)
     }
     return billingStore.getPurchases(skuType)
+  }
+
+  // Supplied for easy Java interop.
+  class DebugBillingClientBuilder(val activity: Activity) {
+    private lateinit var _listener: PurchasesUpdatedListener
+    private var _backgroundExecutor: Executor? = null
+    private var _billingStore: BillingStore? = null
+
+    fun setListener(listener: PurchasesUpdatedListener): DebugBillingClientBuilder {
+      _listener = listener
+      return this
+    }
+
+    fun setBackgroundExecutor(backgroundExecutor: Executor): DebugBillingClientBuilder {
+      _backgroundExecutor = backgroundExecutor
+      return this
+    }
+
+    fun setBillingStore(billingStore: BillingStore): DebugBillingClientBuilder {
+      _billingStore = billingStore
+      return this
+    }
+
+    fun build(): DebugBillingClient {
+      checkNotNull(_listener, { "listener required" })
+      val executor = _backgroundExecutor ?: Executors.newSingleThreadExecutor()
+      val store = _billingStore ?: BillingStore.defaultStore(activity)
+      return DebugBillingClient(activity, _listener, executor, store)
+    }
   }
 }

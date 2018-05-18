@@ -53,7 +53,7 @@ class DebugBillingActivity : AppCompatActivity() {
 
     val sku = intent.getStringExtra(REQUEST_SKU)
     skuType = intent.getStringExtra(REQUEST_SKU_TYPE)
-    val items = BillingStore.getInstance(this)
+    val items = BillingStore.defaultStore(this)
         .getSkuDetails(SkuDetailsParams.newBuilder()
             .setType(skuType)
             .setSkusList(listOf(sku))

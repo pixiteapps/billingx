@@ -13,7 +13,7 @@ abstract class BillingStore {
     private val lock = Any()
     internal var INSTANCE: BillingStore? = null
 
-    fun getInstance(context: Context): BillingStore {
+    fun defaultStore(context: Context): BillingStore {
       if (INSTANCE == null) {
         synchronized(lock) {
           if (INSTANCE == null) {

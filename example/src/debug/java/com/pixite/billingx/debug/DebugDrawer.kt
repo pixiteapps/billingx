@@ -38,7 +38,7 @@ class DebugDrawer : Fragment() {
     subscriptionSwitch.setOnClickListener {
       val ctx = context ?: return@setOnClickListener
       if (subscriptionSwitch.isChecked) {
-        BillingStore.getInstance(ctx)
+        BillingStore.defaultStore(ctx)
             .addPurchase(
                 PurchaseBuilder(
                     orderId = "abcd123",
@@ -52,7 +52,7 @@ class DebugDrawer : Fragment() {
             )
         subsRepo.setSubscribed(true)
       } else {
-        BillingStore.getInstance(ctx).clearPurchases()
+        BillingStore.defaultStore(ctx).clearPurchases()
         subsRepo.setSubscribed(false)
       }
     }

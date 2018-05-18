@@ -1,16 +1,32 @@
 # BillingX: Billing Extensions
 
-Extensions for the Android Billing Support library to allow fake purchases and transaction management in debug builds.
+Extensions for the [Play Billing Library](https://developer.android.com/google/play/billing/billing_java_kotlin)
+to allow fake purchases and transaction management in debug builds.
 
 ![Dialog Screenshot](assets/dialog.png)
 
-BillingX uses a local store for sku and purchase information, allowing you to use a `BillingClient` implementation to make purchases and query information without needing to connect to the Play Store. 
+BillingX uses a local store for sku and purchase information, allowing you to use a `BillingClient`
+implementation to make purchases and query information without needing to connect to the Play Store.
+
+If you interact with the Play Store using anything other than the Play Billing Library then BillingX
+isn't for you.  You should check out [Register](https://github.com/NYTimes/Register).
+
+> BillingX is currently in super early release.  It's being used in production apps (debug
+ variants), but isn't yet complete.
+
+## Todo
+
+* Implement IAB consumption.
+* Add config activity to manage inventory. 
 
 ## Usage
 
-Simply inject the `DebugBillingClient` instead of the standard `BillingClient` from the support library.  Then you can continue to use the `BillingClient` as you normally would.
+Simply inject the `DebugBillingClient` instead of the standard `BillingClient` from the support
+library.  Then you can continue to use the `BillingClient` as you normally would.
 
-If you're not using a dependency injection framework like [Dagger](https://google.github.io/dagger/), you can create a simple factory to get the appropriate instance. 
+If you're not using a dependency injection framework like
+[Dagger](https://google.github.io/dagger/), you can create a simple factory to get the appropriate
+instance. 
 
 In `src/release/java`:
 
@@ -39,13 +55,40 @@ object BillingClientFactory {
 }
 ```
 
-### Initializing Inventory
+## Custom BillingStore
 
-Before you can make purchases or view products with the debug billing client you need to initialize your inventory.  You can do this using the BillingStore:
+By default, BillingX uses a built in `BillingStore` backed by shared preferences. You can supply
+your own `BillingStore` to the `DebugBillingClient` constructor if you'd prefer to store your
+inventory and purchase information elsewhere, like an SQLite database or web service. 
+
+```kotlin
+object BillingClientFactory {
+  fun createBillingClient(activity: Activity, updateListener: PurchasesUpdatedListener): BillingClient {
+    return DebugBillingClient(
+        activity = activity,
+        backgroundExecutor = Executors.diskIO,
+        purchasesUpdatedListener = updateListener,
+        billingStore = MyBillingStore()
+    )
+  }
+}
+```
+
+You simply need to create an implementation of the [BillingStore](library/src/main/java/com/pixite/android/billingx/BillingStore.kt)
+abstract class in your custom class.  Note that threading is taken care of in the
+`DebugBillingClient` so all methods implemented in your custom `BillingStore` can be synchronous.
+
+### Initializing the Inventory
+
+When using the default BillingStore, you must first initialize the inventory before you can make
+purchases or view products.
+  
+The `BillingStore` abstract class includes a companion function to retrieve the default store. From
+there you can update the products and purchases.  
 
 ```kotlin
 fun setupPurchases(activity: Activity) {
-  BillingStore.getInstance(activity)
+  BillingStore.defaultStore(activity)
       .clearProducts()
       .addProduct(
           SkuDetailsBuilder(sku = "com.myapp.weekly", type = BillingClient.SkuType.SUBS,
@@ -74,7 +117,8 @@ fun setupPurchases(activity: Activity) {
 
 Clone the repo...
 
-Import the billingx library only into your debug builds and use the standard billing support library in your release builds. 
+Import the billingx library only into your debug builds and use the standard billing support library
+in your release builds. 
 
 ```groovy
 debugImplementation project(":billingx")
