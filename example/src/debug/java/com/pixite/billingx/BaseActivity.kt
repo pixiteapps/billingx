@@ -9,7 +9,6 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import com.pixite.billingx.debug.DebugDrawer
-import com.ryanharter.billingx.R
 
 open class BaseActivity : AppCompatActivity() {
 

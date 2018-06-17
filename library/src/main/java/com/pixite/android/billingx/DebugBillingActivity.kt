@@ -15,7 +15,6 @@ import com.android.billingclient.api.Purchase
 import com.android.billingclient.api.SkuDetails
 import com.android.billingclient.api.SkuDetailsParams
 import com.android.billingclient.util.BillingHelper
-import com.ryanharter.android.billingx.R
 import java.util.Date
 
 class DebugBillingActivity : AppCompatActivity() {

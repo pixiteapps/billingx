@@ -1,5 +1,7 @@
 # BillingX: Billing Extensions
 
+
+
 Extensions for the [Play Billing Library](https://developer.android.com/google/play/billing/billing_java_kotlin)
 to allow fake purchases and transaction management in debug builds.
 
@@ -114,15 +116,11 @@ fun setupPurchases(activity: Activity) {
 
 ## Download
 
-> BillingX isn't quite ready for release so, for now, you'll have to...
-
-Clone the repo...
-
 Import the billingx library only into your debug builds and use the standard billing support library
 in your release builds. 
 
 ```groovy
-debugImplementation project(":billingx")
+debugImplementation 'com.pixiteapps.billingx:billingx:0.8.0'
 releaseImplementation 'com.android.billingclient:billing:1.0'
 ```
 

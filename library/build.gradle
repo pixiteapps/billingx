@@ -33,12 +33,12 @@ dependencies {
   testImplementation libs.androidJson
   testImplementation libs.mockitoKotlin
   testImplementation libs.kotlinStdlib
+  testImplementation libs.kotlinReflect
   testImplementation libs.kotlinRuntime
   testImplementation libs.kotlinTest
 
   androidTestImplementation libs.androidTestRunner
   androidTestImplementation libs.espressoCore
 }
-repositories {
-  mavenCentral()
-}
+
+apply from: rootProject.file('gradle/gradle-mvn-push.gradle')

@@ -6,7 +6,6 @@ import android.support.design.widget.FloatingActionButton
 import android.view.View
 import android.widget.TextView
 import com.pixite.billingx.util.bindView
-import com.ryanharter.billingx.R
 
 class MainActivity : BaseActivity() {
 

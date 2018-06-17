@@ -8,7 +8,7 @@
     >
 
   <TextView
-      android:text="TextView"
+      tools:text="TextView"
       android:layout_width="wrap_content"
       android:layout_height="wrap_content"
       android:id="@+id/status_text"
@@ -23,6 +23,7 @@
       android:layout_width="wrap_content"
       android:layout_height="wrap_content"
       android:clickable="true"
+      android:focusable="true"
       app:srcCompat="@drawable/ic_purchase"
       app:layout_constraintBottom_toBottomOf="parent"
       android:layout_marginEnd="16dp"

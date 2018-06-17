@@ -10,7 +10,7 @@ import android.widget.Switch
 import com.pixite.android.billingx.BillingStore
 import com.pixite.android.billingx.PurchaseBuilder
 import com.pixite.billingx.BillingManager
-import com.ryanharter.billingx.R
+import com.pixite.billingx.R
 import com.pixite.billingx.SubscriptionRepository
 import com.pixite.billingx.injection
 import com.pixite.billingx.util.bindView

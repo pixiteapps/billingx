@@ -4,7 +4,7 @@
     android:layout_width="300dp"
     android:layout_height="match_parent"
     android:background="#fafafa"
-    tools:ignore="HardcodedText"
+    tools:ignore="HardcodedText,Overdraw"
     android:fillViewport="true"
     >
 
@@ -27,9 +27,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignParentEnd="true"
-        android:layout_alignParentRight="true"
         android:layout_marginStart="4dp"
-        android:layout_marginLeft="4dp"
         android:src="@mipmap/ic_launcher"
         tools:ignore="ContentDescription"
         />
@@ -40,7 +38,6 @@
         android:layout_height="wrap_content"
         android:text="BillingX Debug"
         android:layout_toStartOf="@id/dev_drawer_icon"
-        android:layout_toLeftOf="@id/dev_drawer_icon"
         style="@style/TextAppearance.AppCompat.Widget.ActionBar.Title"
         />
 
@@ -49,7 +46,6 @@
         android:layout_height="wrap_content"
         android:layout_below="@id/dev_drawer_title"
         android:layout_toStartOf="@id/dev_drawer_icon"
-        android:layout_toLeftOf="@id/dev_drawer_icon"
         android:text="Development Settings"
         style="@style/TextAppearance.AppCompat.Widget.ActionBar.Subtitle"
         />
