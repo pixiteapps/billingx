@@ -1,6 +1,6 @@
 # BillingX: Billing Extensions
 
-
+[![CircleCI](https://circleci.com/gh/pixiteapps/billingx.svg?style=svg)](https://circleci.com/gh/pixiteapps/billingx)
 
 Extensions for the [Play Billing Library](https://developer.android.com/google/play/billing/billing_java_kotlin)
 to allow fake purchases and transaction management in debug builds.
