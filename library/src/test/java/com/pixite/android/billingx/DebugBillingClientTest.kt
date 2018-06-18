@@ -1,6 +1,7 @@
 package com.pixite.android.billingx
 
 import android.app.Activity
+import android.app.Application
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.IntentFilter
@@ -28,6 +29,7 @@ import java.util.concurrent.Executor
 
 class DebugBillingClientTest {
 
+  lateinit var application: Application
   lateinit var activity: Activity
   lateinit var store: BillingStore
   lateinit var purchasesUpdatedListener: FakePurchasesUpdatedListener
@@ -77,8 +79,11 @@ class DebugBillingClientTest {
   private val inapp1 = SkuDetails(inapp1Json)
 
   @Before fun setup() {
-    activity = mock()
-    store = mock() {
+    application = mock()
+    activity = mock {
+      on { applicationContext } doReturn application
+    }
+    store = mock {
       on { getPurchases(eq(SkuType.INAPP)) } doReturn InternalPurchasesResult(BillingResponse.OK, listOf(inappPurchase1, inappPurchase2))
       on { getPurchases(eq(SkuType.SUBS)) } doReturn InternalPurchasesResult(BillingResponse.OK, listOf(subsPurchase1, subsPurchase2))
       on { getSkuDetails(any()) } doAnswer {
@@ -135,7 +140,7 @@ class DebugBillingClientTest {
   @Test fun querySkuDetailsAsyncReturnsDisconnected() {
     val listener = FakeSkuDetailsResponseListener()
     client.querySkuDetailsAsync(SkuDetailsParams.newBuilder()
-        .setType(SkuType.SUBS).build(), listener)
+        .setType(SkuType.SUBS).setSkusList(listOf()).build(), listener)
 
     assertThat(listener.responseCode).isEqualTo(BillingResponse.SERVICE_DISCONNECTED)
     assertThat(listener.skuDetailsList).isNull()

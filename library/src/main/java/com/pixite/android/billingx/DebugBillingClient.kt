@@ -19,10 +19,10 @@ import com.android.billingclient.util.BillingHelper
 import java.util.concurrent.Executor
 import java.util.concurrent.Executors
 
-class DebugBillingClient(private val activity: Activity,
+class DebugBillingClient(context: Context,
                          private val purchasesUpdatedListener: PurchasesUpdatedListener,
                          private val backgroundExecutor: Executor = Executors.newSingleThreadExecutor(),
-                         private val billingStore: BillingStore = BillingStore.defaultStore(activity),
+                         private val billingStore: BillingStore = BillingStore.defaultStore(context),
                          private val localBroadcastInteractor: LocalBroadcastInteractor = AndroidLocalBroadcastInteractor()) : BillingClient() {
 
   companion object {
@@ -32,8 +32,10 @@ class DebugBillingClient(private val activity: Activity,
      * Creates a new DebugBillingClientBuilder for Java consumers.  Kotlin users should prefer
      * the constructor.
      */
-    @JvmStatic fun newBuilder(activity: Activity) = DebugBillingClientBuilder(activity)
+    @JvmStatic fun newBuilder(context: Context) = DebugBillingClientBuilder(context)
   }
+
+  private val context = context.applicationContext
 
   private var billingClientStateListener: BillingClientStateListener? = null
   private var connected = false
@@ -58,7 +60,7 @@ class DebugBillingClient(private val activity: Activity,
   override fun isReady(): Boolean = connected
 
   override fun startConnection(listener: BillingClientStateListener) {
-    localBroadcastInteractor.registerReceiver(activity, broadcastReceiver,
+    localBroadcastInteractor.registerReceiver(context, broadcastReceiver,
         IntentFilter(DebugBillingActivity.RESPONSE_INTENT_ACTION))
     connected = true
     this.billingClientStateListener = listener
@@ -66,7 +68,7 @@ class DebugBillingClient(private val activity: Activity,
   }
 
   override fun endConnection() {
-    localBroadcastInteractor.unregisterReceiver(activity, broadcastReceiver)
+    localBroadcastInteractor.unregisterReceiver(context, broadcastReceiver)
     billingClientStateListener?.onBillingServiceDisconnected()
     connected = false
   }
@@ -125,7 +127,7 @@ class DebugBillingClient(private val activity: Activity,
   }
 
   // Supplied for easy Java interop.
-  class DebugBillingClientBuilder(val activity: Activity) {
+  class DebugBillingClientBuilder(val context: Context) {
     private lateinit var _listener: PurchasesUpdatedListener
     private var _backgroundExecutor: Executor? = null
     private var _billingStore: BillingStore? = null
@@ -148,8 +150,8 @@ class DebugBillingClient(private val activity: Activity,
     fun build(): DebugBillingClient {
       checkNotNull(_listener, { "listener required" })
       val executor = _backgroundExecutor ?: Executors.newSingleThreadExecutor()
-      val store = _billingStore ?: BillingStore.defaultStore(activity)
-      return DebugBillingClient(activity, _listener, executor, store)
+      val store = _billingStore ?: BillingStore.defaultStore(context)
+      return DebugBillingClient(context, _listener, executor, store)
     }
   }
 }
