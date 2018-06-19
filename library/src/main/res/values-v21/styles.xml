@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <style name="BillingX.Text.Price" parent="TextAppearance.AppCompat.Medium">
-        <item name="android:textColor">?android:attr/colorAccent</item>
-    </style>
+  <style name="BillingX.Text.Price" parent="TextAppearance.AppCompat.Medium">
+    <item name="android:textColor">?android:attr/colorAccent</item>
+  </style>
 </resources>
