@@ -28,8 +28,7 @@
       android:layout_marginEnd="16dp"
       app:layout_constraintRight_toRightOf="parent"
       android:id="@+id/price"
-      android:textAppearance="@style/TextAppearance.AppCompat.Medium"
-      android:textColor="?android:attr/colorAccent"
+      style="@style/BillingX.Text.Price"
       />
   <TextView
       android:layout_width="0dp"
