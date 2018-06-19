@@ -7,6 +7,8 @@ import android.os.Bundle
 import android.support.v4.content.LocalBroadcastManager
 import android.support.v7.app.AppCompatActivity
 import android.util.Log
+import android.view.MotionEvent
+import android.view.WindowManager
 import android.widget.Button
 import android.widget.TextView
 import com.android.billingclient.api.BillingClient.BillingResponse
@@ -74,6 +76,24 @@ class DebugBillingActivity : AppCompatActivity() {
       broadcastResult(BillingResponse.OK, buildResultBundle(item.toPurchaseData(this, skuType)))
       finish()
     }
+    window.addFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL)
+    window.addFlags(WindowManager.LayoutParams.FLAG_WATCH_OUTSIDE_TOUCH)
+  }
+
+  override fun onBackPressed() {
+    broadcastUserCanceled()
+    super.onBackPressed()
+  }
+
+  override fun onTouchEvent(event: MotionEvent?): Boolean {
+    if (event?.action == MotionEvent.ACTION_OUTSIDE) {
+        broadcastUserCanceled()
+    }
+    return super.onTouchEvent(event)
+  }
+
+  private fun broadcastUserCanceled() {
+    broadcastResult(BillingResponse.USER_CANCELED, Bundle())
   }
 
   private fun buildResultBundle(purchase: Purchase): Bundle {

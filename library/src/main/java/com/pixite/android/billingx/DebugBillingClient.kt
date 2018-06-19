@@ -42,18 +42,22 @@ class DebugBillingClient(context: Context,
 
   private val broadcastReceiver = object : BroadcastReceiver() {
     override fun onReceive(context: Context?, intent: Intent?) {
-      // Receiving the result from local broadcast and triggering a callback on listener.
-      @BillingResponse
-      val responseCode = intent?.getIntExtra(DebugBillingActivity.RESPONSE_CODE, BillingResponse.ERROR)
-          ?: BillingResponse.ERROR
-      val resultData = intent?.getBundleExtra(DebugBillingActivity.RESPONSE_BUNDLE)
-      val purchases = BillingHelper.extractPurchases(resultData)
+        // Receiving the result from local broadcast and triggering a callback on listener.
+        @BillingResponse
+        val responseCode = intent?.getIntExtra(DebugBillingActivity.RESPONSE_CODE, BillingResponse.ERROR)
+                ?: BillingResponse.ERROR
 
-      // save the purchase
-      purchases.forEach { billingStore.addPurchase(it) }
+        var purchases: List<Purchase>? = null
+        if (responseCode == BillingResponse.OK) {
+            val resultData = intent?.getBundleExtra(DebugBillingActivity.RESPONSE_BUNDLE)
+            purchases = BillingHelper.extractPurchases(resultData)
 
-      // save the result
-      purchasesUpdatedListener.onPurchasesUpdated(responseCode, purchases)
+            // save the purchase
+            purchases.forEach { billingStore.addPurchase(it) }
+        }
+  
+        // save the result
+        purchasesUpdatedListener.onPurchasesUpdated(responseCode, purchases)
     }
   }
 
