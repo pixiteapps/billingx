@@ -1,7 +1,7 @@
 ext {
   compileSdkVersion = 27
   buildToolsVersion = "27.1.0"
-  minSdkVersion = 21
+  minSdkVersion = 19
   targetSdkVersion = 27
 
   def archVersion = '1.1.1'
@@ -27,7 +27,7 @@ ext {
       kotlinRuntime             : "org.jetbrains.kotlin:kotlin-runtime:$kotlin_version",
       kotlinTest                : 'org.jetbrains.kotlin:kotlin-test:1.0.6',
       mockitoKotlin             : "com.nhaarman:mockito-kotlin:1.5.0",
-      threeTenABP                 : 'com.jakewharton.threetenabp:threetenabp:1.0.5',
+      threeTenABP               : 'com.jakewharton.threetenabp:threetenabp:1.0.5',
       truth                     : "com.google.truth:truth:0.34",
   ]
 }
