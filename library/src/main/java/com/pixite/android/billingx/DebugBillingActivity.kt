@@ -87,7 +87,9 @@ class DebugBillingActivity : AppCompatActivity() {
 
   override fun onTouchEvent(event: MotionEvent?): Boolean {
     if (event?.action == MotionEvent.ACTION_OUTSIDE) {
-        broadcastUserCanceled()
+      broadcastUserCanceled()
+      finish()
+      return true
     }
     return super.onTouchEvent(event)
   }
