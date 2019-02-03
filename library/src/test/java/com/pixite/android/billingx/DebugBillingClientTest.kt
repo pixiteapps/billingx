@@ -97,7 +97,25 @@ class DebugBillingClientTest {
     }
     purchasesUpdatedListener = FakePurchasesUpdatedListener()
     client = DebugBillingClient(activity, purchasesUpdatedListener,
-        Executor { command -> command?.run() }, store, localBroadcastInteractor)
+        Executor { command -> command?.run() }, store, localBroadcastInteractor, VoidLogger())
+  }
+
+  @Test fun `refuses to start a new connection after the connection is closed`() {
+    var response = -1
+    val responseListener = object : BillingClientStateListener {
+      override fun onBillingServiceDisconnected() {}
+
+      override fun onBillingSetupFinished(responseCode: Int) {
+        response = responseCode
+      }
+    }
+    client.startConnection(responseListener)
+    assertThat(client.isReady).isTrue()
+
+    client.endConnection()
+
+    client.startConnection(responseListener)
+    assertThat(response).isEqualTo(BillingResponse.DEVELOPER_ERROR)
   }
 
   @Test fun methodsFailWithoutStartedConnection() {
@@ -224,5 +242,10 @@ class DebugBillingClientTest {
       this.responseCode = responseCode
       this.purchasesList = purchases
     }
+  }
+
+  class VoidLogger : BillingLogger {
+    override fun v(msg: String) {}
+    override fun w(msg: String) {}
   }
 }
