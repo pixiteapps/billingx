@@ -1,3 +1,7 @@
+# Version 0.8.2
+
+* Adds support for consumption of purchases.
+
 # Version 0.8.1
 
 * Updates DebugBillingClient to take a `Context` instead of `Activity`.
