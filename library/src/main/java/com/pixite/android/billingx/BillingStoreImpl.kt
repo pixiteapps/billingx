@@ -29,6 +29,11 @@ class BillingStoreImpl(private val prefs: SharedPreferences) : BillingStore(){
             .filter { it.signature.endsWith(skuType) })
   }
 
+  override fun getPurchaseByToken(purchaseToken: String): Purchase? {
+    return prefs.getString(KEY_PURCHASES, "[]").toPurchaseList()
+        .firstOrNull { it.purchaseToken == purchaseToken }
+  }
+
   override fun addProduct(skuDetails: SkuDetails): BillingStore {
     val allDetails = JSONArray(prefs.getString(KEY_SKU_DETAILS, "[]"))
     allDetails.put(skuDetails.toJSONObject())
@@ -57,9 +62,9 @@ class BillingStoreImpl(private val prefs: SharedPreferences) : BillingStore(){
     return this
   }
 
-  override fun removePurchase(sku: String): BillingStore {
+  override fun removePurchase(purchaseToken: String): BillingStore {
     val allPurchases = prefs.getString(KEY_PURCHASES, "[]").toPurchaseList()
-    val filtered = allPurchases.filter { it.sku != sku }
+    val filtered = allPurchases.filter { it.purchaseToken != purchaseToken }
     val json = JSONArray()
     filtered.forEach { json.put(it.toJSONObject()) }
     prefs.edit().putString(KEY_PURCHASES, json.toString()).apply()

@@ -27,11 +27,13 @@ abstract class BillingStore {
   }
 
   abstract fun getSkuDetails(params: SkuDetailsParams): List<SkuDetails>
-  abstract fun getPurchases(@BillingClient.SkuType skuType: String): Purchase.PurchasesResult
   abstract fun addProduct(skuDetails: SkuDetails): BillingStore
   abstract fun removeProduct(sku: String): BillingStore
   abstract fun clearProducts(): BillingStore
+
   abstract fun addPurchase(purchase: Purchase): BillingStore
-  abstract fun removePurchase(sku: String): BillingStore
   abstract fun clearPurchases(): BillingStore
+  abstract fun getPurchases(@BillingClient.SkuType skuType: String): Purchase.PurchasesResult
+  abstract fun getPurchaseByToken(purchaseToken: String): Purchase?
+  abstract fun removePurchase(purchaseToken: String): BillingStore
 }

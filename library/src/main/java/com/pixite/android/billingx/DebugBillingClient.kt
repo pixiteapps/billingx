@@ -117,7 +117,20 @@ class DebugBillingClient(
   }
 
   override fun consumeAsync(purchaseToken: String?, listener: ConsumeResponseListener?) {
-    TODO("not implemented")
+    if (purchaseToken == null || purchaseToken.isBlank()) {
+      listener?.onConsumeResponse(BillingResponse.DEVELOPER_ERROR, purchaseToken)
+      return
+    }
+
+    backgroundExecutor.execute {
+      val purchase = billingStore.getPurchaseByToken(purchaseToken)
+      if (purchase != null) {
+        billingStore.removePurchase(purchase.purchaseToken)
+        listener?.onConsumeResponse(BillingResponse.OK, purchaseToken)
+      } else {
+        listener?.onConsumeResponse(BillingResponse.ITEM_NOT_OWNED, purchaseToken)
+      }
+    }
   }
 
   override fun launchBillingFlow(activity: Activity?, params: BillingFlowParams?): Int {
