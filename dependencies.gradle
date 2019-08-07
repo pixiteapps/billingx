@@ -15,7 +15,7 @@ ext {
       archLifecycleCompiler     : "android.arch.lifecycle:compiler:${archVersion}",
       archLifecycleExtensions   : "android.arch.lifecycle:extensions:${archVersion}",
       archLifecycleRuntime      : "android.arch.lifecycle:runtime:${archVersion}",
-      billingClient             : 'com.android.billingclient:billing:1.1',
+      billingClient             : 'com.android.billingclient:billing:2.0.3',
       billingX                  : project(':library'),
       constraintLayout          : 'com.android.support.constraint:constraint-layout:1.0.2',
       design                    : 'com.android.support:design:27.1.0',
