@@ -5,16 +5,7 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
-import com.android.billingclient.api.BillingClient
-import com.android.billingclient.api.BillingClientStateListener
-import com.android.billingclient.api.BillingFlowParams
-import com.android.billingclient.api.ConsumeResponseListener
-import com.android.billingclient.api.InternalPurchasesResult
-import com.android.billingclient.api.Purchase
-import com.android.billingclient.api.PurchaseHistoryResponseListener
-import com.android.billingclient.api.PurchasesUpdatedListener
-import com.android.billingclient.api.SkuDetailsParams
-import com.android.billingclient.api.SkuDetailsResponseListener
+import com.android.billingclient.api.*
 import com.android.billingclient.util.BillingHelper
 import com.pixite.android.billingx.DebugBillingClient.ClientState.CLOSED
 import com.pixite.android.billingx.DebugBillingClient.ClientState.CONNECTED
@@ -59,13 +50,13 @@ class DebugBillingClient(
   private val broadcastReceiver = object : BroadcastReceiver() {
     override fun onReceive(context: Context?, intent: Intent?) {
       // Receiving the result from local broadcast and triggering a callback on listener.
-      @BillingResponse
+      @BillingResponseCode
       val responseCode =
-        intent?.getIntExtra(DebugBillingActivity.RESPONSE_CODE, BillingResponse.ERROR)
-            ?: BillingResponse.ERROR
+        intent?.getIntExtra(DebugBillingActivity.RESPONSE_CODE, BillingResponseCode.ERROR)
+            ?: BillingResponseCode.ERROR
 
       var purchases: List<Purchase>? = null
-      if (responseCode == BillingResponse.OK) {
+      if (responseCode == BillingResponseCode.OK) {
         val resultData = intent?.getBundleExtra(DebugBillingActivity.RESPONSE_BUNDLE)
         purchases = BillingHelper.extractPurchases(resultData)
 
@@ -74,7 +65,7 @@ class DebugBillingClient(
       }
 
       // save the result
-      purchasesUpdatedListener.onPurchasesUpdated(responseCode, purchases)
+      purchasesUpdatedListener.onPurchasesUpdated(BillingResult.newBuilder().setResponseCode(responseCode).build(), purchases)
     }
   }
 
@@ -82,13 +73,13 @@ class DebugBillingClient(
 
   override fun startConnection(listener: BillingClientStateListener) {
     if (isReady) {
-      listener.onBillingSetupFinished(BillingClient.BillingResponse.OK)
+      listener.onBillingSetupFinished(BillingResult.newBuilder().setResponseCode(BillingClient.BillingResponseCode.OK).build())
       return
     }
 
     if (clientState == CLOSED) {
       logger.w("Client was already closed and can't be reused. Please create another instance.")
-      listener.onBillingSetupFinished(BillingClient.BillingResponse.DEVELOPER_ERROR)
+      listener.onBillingSetupFinished(BillingResult.newBuilder().setResponseCode(BillingClient.BillingResponseCode.DEVELOPER_ERROR).build())
       return
     }
 
@@ -98,7 +89,7 @@ class DebugBillingClient(
     )
     this.billingClientStateListener = listener
     clientState = CONNECTED
-    listener.onBillingSetupFinished(BillingResponse.OK)
+    listener.onBillingSetupFinished(BillingResult.newBuilder().setResponseCode(BillingResponseCode.OK).build())
   }
 
   override fun endConnection() {
@@ -107,18 +98,19 @@ class DebugBillingClient(
     clientState = CLOSED
   }
 
-  override fun isFeatureSupported(feature: String?): Int {
+  override fun isFeatureSupported(feature: String?): BillingResult? {
     // TODO Update BillingStore to allow feature enable/disable
     return if (!isReady) {
-      BillingResponse.SERVICE_DISCONNECTED
+      BillingResult.newBuilder().setResponseCode(BillingResponseCode.SERVICE_DISCONNECTED).build()
     } else {
-      BillingResponse.OK
+      BillingResult.newBuilder().setResponseCode(BillingResponseCode.OK).build()
     }
   }
 
-  override fun consumeAsync(purchaseToken: String?, listener: ConsumeResponseListener?) {
+  override fun consumeAsync(consumeParams: ConsumeParams?, listener: ConsumeResponseListener) {
+    val purchaseToken = consumeParams?.purchaseToken
     if (purchaseToken == null || purchaseToken.isBlank()) {
-      listener?.onConsumeResponse(BillingResponse.DEVELOPER_ERROR, purchaseToken)
+      listener.onConsumeResponse(BillingResult.newBuilder().setResponseCode(BillingResponseCode.DEVELOPER_ERROR).build(), purchaseToken)
       return
     }
 
@@ -126,55 +118,64 @@ class DebugBillingClient(
       val purchase = billingStore.getPurchaseByToken(purchaseToken)
       if (purchase != null) {
         billingStore.removePurchase(purchase.purchaseToken)
-        listener?.onConsumeResponse(BillingResponse.OK, purchaseToken)
+        listener?.onConsumeResponse(BillingResult.newBuilder().setResponseCode(BillingResponseCode.OK).build(), purchaseToken)
       } else {
-        listener?.onConsumeResponse(BillingResponse.ITEM_NOT_OWNED, purchaseToken)
+        listener?.onConsumeResponse(BillingResult.newBuilder().setResponseCode(BillingResponseCode.ITEM_NOT_OWNED).build(), purchaseToken)
       }
     }
   }
 
-  override fun launchBillingFlow(activity: Activity?, params: BillingFlowParams?): Int {
+  override fun launchBillingFlow(activity: Activity?, params: BillingFlowParams?): BillingResult? {
     val intent = Intent(activity, DebugBillingActivity::class.java)
     intent.putExtra(DebugBillingActivity.REQUEST_SKU_TYPE, params?.skuType)
     intent.putExtra(DebugBillingActivity.REQUEST_SKU, params?.sku)
     activity!!.startActivity(intent)
-    return BillingResponse.OK
+    return BillingResult.newBuilder().setResponseCode(BillingResponseCode.OK).build()
   }
 
-  override fun queryPurchaseHistoryAsync(
-      skuType: String?, listener: PurchaseHistoryResponseListener?
-  ) {
+  override fun queryPurchaseHistoryAsync(skuType: String?, listener: PurchaseHistoryResponseListener) {
     if (!isReady) {
-      listener?.onPurchaseHistoryResponse(BillingResponse.SERVICE_DISCONNECTED, null)
+      listener.onPurchaseHistoryResponse(BillingResult.newBuilder().setResponseCode(BillingResponseCode.SERVICE_DISCONNECTED).build(), null)
       return
     }
     backgroundExecutor.execute {
       val history = queryPurchases(skuType)
-      listener?.onPurchaseHistoryResponse(history.responseCode, history.purchasesList)
+      listener.onPurchaseHistoryResponse(BillingResult.newBuilder().setResponseCode(history.responseCode).build(),
+              history.purchasesList.map { PurchaseHistoryRecord(it.originalJson, it.signature) })
     }
   }
 
-  override fun querySkuDetailsAsync(
-      params: SkuDetailsParams, listener: SkuDetailsResponseListener?
-  ) {
+  override fun querySkuDetailsAsync(params: SkuDetailsParams, listener: SkuDetailsResponseListener) {
     if (!isReady) {
-      listener?.onSkuDetailsResponse(BillingResponse.SERVICE_DISCONNECTED, null)
+      listener.onSkuDetailsResponse(BillingResult.newBuilder().setResponseCode(BillingResponseCode.SERVICE_DISCONNECTED).build(), null)
       return
     }
     backgroundExecutor.execute {
-      listener?.onSkuDetailsResponse(BillingResponse.OK, billingStore.getSkuDetails(params))
+      listener.onSkuDetailsResponse(BillingResult.newBuilder().setResponseCode(BillingResponseCode.OK).build(), billingStore.getSkuDetails(params))
     }
   }
 
   override fun queryPurchases(@SkuType skuType: String?): Purchase.PurchasesResult {
     if (!isReady) {
-      return InternalPurchasesResult(BillingResponse.SERVICE_DISCONNECTED, null)
+      return InternalPurchasesResult(BillingResult.newBuilder().setResponseCode(BillingResponseCode.SERVICE_DISCONNECTED).build(), null)
     }
     if (skuType == null || skuType.isBlank()) {
       logger.w("Please provide a valid SKU type.")
-      return InternalPurchasesResult(BillingResponse.DEVELOPER_ERROR, /* purchasesList */ null)
+      return InternalPurchasesResult(BillingResult.newBuilder().setResponseCode(BillingResponseCode.DEVELOPER_ERROR).build(), /* purchasesList */ null)
     }
     return billingStore.getPurchases(skuType)
+  }
+
+  override fun launchPriceChangeConfirmationFlow(activity: Activity?, params: PriceChangeFlowParams?, listener: PriceChangeConfirmationListener) {
+    TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+  }
+
+  override fun loadRewardedSku(params: RewardLoadParams?, listener: RewardResponseListener) {
+    TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+  }
+
+  override fun acknowledgePurchase(params: AcknowledgePurchaseParams?, listener: AcknowledgePurchaseResponseListener?) {
+    TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
   }
 
   // Supplied for easy Java interop.

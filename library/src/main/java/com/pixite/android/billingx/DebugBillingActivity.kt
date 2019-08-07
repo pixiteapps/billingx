@@ -11,7 +11,7 @@ import android.view.MotionEvent
 import android.view.WindowManager
 import android.widget.Button
 import android.widget.TextView
-import com.android.billingclient.api.BillingClient.BillingResponse
+import com.android.billingclient.api.BillingClient
 import com.android.billingclient.api.BillingClient.SkuType
 import com.android.billingclient.api.Purchase
 import com.android.billingclient.api.SkuDetails
@@ -73,7 +73,7 @@ class DebugBillingActivity : AppCompatActivity() {
 
     // TODO get the response code from a spinner with options
     buyButton.setOnClickListener {
-      broadcastResult(BillingResponse.OK, buildResultBundle(item.toPurchaseData(this, skuType)))
+      broadcastResult(BillingClient.BillingResponseCode.OK, buildResultBundle(item.toPurchaseData(this, skuType)))
       finish()
     }
     window.addFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL)
@@ -95,12 +95,12 @@ class DebugBillingActivity : AppCompatActivity() {
   }
 
   private fun broadcastUserCanceled() {
-    broadcastResult(BillingResponse.USER_CANCELED, Bundle())
+    broadcastResult(BillingClient.BillingResponseCode.USER_CANCELED, Bundle())
   }
 
   private fun buildResultBundle(purchase: Purchase): Bundle {
     return Bundle().apply {
-      putInt(BillingHelper.RESPONSE_CODE, BillingResponse.OK)
+      putInt(BillingHelper.RESPONSE_CODE, BillingClient.BillingResponseCode.OK)
       putStringArrayList(BillingHelper.RESPONSE_INAPP_PURCHASE_DATA_LIST, arrayListOf(purchase.originalJson))
       putStringArrayList(BillingHelper.RESPONSE_INAPP_SIGNATURE_LIST, arrayListOf(purchase.signature))
     }
