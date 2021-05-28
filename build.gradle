@@ -5,7 +5,7 @@ buildscript {
   ext.dokka_version = '0.9.17'
     repositories {
         google()
-        jcenter()
+        mavenCentral()
     }
     dependencies {
         classpath 'com.android.tools.build:gradle:4.2.1'
@@ -20,7 +20,7 @@ buildscript {
 allprojects {
     repositories {
         google()
-        jcenter()
+        mavenCentral()
     }
 }
 
