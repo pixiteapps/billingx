@@ -1,6 +1,6 @@
 package com.pixite.android.billingx
 
-import com.android.billingclient.util.BillingHelper
+import android.util.Log
 
 interface BillingLogger {
   fun v(msg: String)
@@ -10,11 +10,11 @@ interface BillingLogger {
 class SimpleBillingLogger : BillingLogger {
 
   override fun v(msg: String) {
-    BillingHelper.logVerbose(TAG, msg)
+    Log.v(TAG, msg)
   }
 
   override fun w(msg: String) {
-    BillingHelper.logWarn(TAG, msg)
+    Log.w(TAG, msg)
   }
 
   companion object {
