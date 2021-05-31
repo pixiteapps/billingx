@@ -5,20 +5,26 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
+import com.android.billingclient.api.AcknowledgePurchaseParams
+import com.android.billingclient.api.AcknowledgePurchaseResponseListener
 import com.android.billingclient.api.BillingClient
 import com.android.billingclient.api.BillingClientStateListener
 import com.android.billingclient.api.BillingFlowParams
+import com.android.billingclient.api.BillingResult
+import com.android.billingclient.api.ConsumeParams
 import com.android.billingclient.api.ConsumeResponseListener
 import com.android.billingclient.api.InternalPurchasesResult
+import com.android.billingclient.api.PriceChangeConfirmationListener
+import com.android.billingclient.api.PriceChangeFlowParams
 import com.android.billingclient.api.Purchase
 import com.android.billingclient.api.PurchaseHistoryResponseListener
 import com.android.billingclient.api.PurchasesUpdatedListener
+import com.android.billingclient.api.RewardLoadParams
+import com.android.billingclient.api.RewardResponseListener
 import com.android.billingclient.api.SkuDetailsParams
 import com.android.billingclient.api.SkuDetailsResponseListener
-import com.android.billingclient.util.BillingHelper
 import com.pixite.android.billingx.DebugBillingClient.ClientState.CLOSED
 import com.pixite.android.billingx.DebugBillingClient.ClientState.CONNECTED
-import com.pixite.android.billingx.DebugBillingClient.ClientState.CONNECTING
 import com.pixite.android.billingx.DebugBillingClient.ClientState.DISCONNECTED
 import java.util.concurrent.Executor
 import java.util.concurrent.Executors
@@ -59,36 +65,50 @@ class DebugBillingClient(
   private val broadcastReceiver = object : BroadcastReceiver() {
     override fun onReceive(context: Context?, intent: Intent?) {
       // Receiving the result from local broadcast and triggering a callback on listener.
-      @BillingResponse
+      @BillingResponseCode
       val responseCode =
-        intent?.getIntExtra(DebugBillingActivity.RESPONSE_CODE, BillingResponse.ERROR)
-            ?: BillingResponse.ERROR
+        intent?.getIntExtra(DebugBillingActivity.RESPONSE_CODE, BillingResponseCode.ERROR)
+            ?: BillingResponseCode.ERROR
 
       var purchases: List<Purchase>? = null
-      if (responseCode == BillingResponse.OK) {
-        val resultData = intent?.getBundleExtra(DebugBillingActivity.RESPONSE_BUNDLE)
-        purchases = BillingHelper.extractPurchases(resultData)
+      if (responseCode == BillingResponseCode.OK) {
+        val resultData = intent?.getBundleExtra(DebugBillingActivity.RESPONSE_BUNDLE)?.let {
+          val purchaseDataList = it.getStringArrayList(DebugBillingActivity.RESPONSE_INAPP_PURCHASE_DATA_LIST).orEmpty()
+          val signatureList = it.getStringArrayList(DebugBillingActivity.RESPONSE_INAPP_SIGNATURE_LIST).orEmpty()
+          purchaseDataList.mapIndexed { index, purchaseData ->
+              Purchase(purchaseData, signatureList[index])
+          }.toList()
+        }.orEmpty()
+        purchases = resultData
 
         // save the purchase
         purchases.forEach { billingStore.addPurchase(it) }
       }
 
       // save the result
-      purchasesUpdatedListener.onPurchasesUpdated(responseCode, purchases)
+      purchasesUpdatedListener.onPurchasesUpdated(createBillingResult(responseCode), purchases)
     }
+  }
+  @BillingResponseCode
+  private fun Int.toBillingResult(): BillingResult {
+    return BillingResult.newBuilder().setResponseCode(this).build()
+  }
+
+  private fun createBillingResult(@BillingResponseCode billingResponseCode: Int): BillingResult {
+    return BillingResult.newBuilder().setResponseCode(billingResponseCode).build()
   }
 
   override fun isReady(): Boolean = clientState == CONNECTED
 
   override fun startConnection(listener: BillingClientStateListener) {
     if (isReady) {
-      listener.onBillingSetupFinished(BillingClient.BillingResponse.OK)
+      listener.onBillingSetupFinished(BillingResponseCode.OK.toBillingResult())
       return
     }
 
     if (clientState == CLOSED) {
       logger.w("Client was already closed and can't be reused. Please create another instance.")
-      listener.onBillingSetupFinished(BillingClient.BillingResponse.DEVELOPER_ERROR)
+      listener.onBillingSetupFinished(BillingResponseCode.DEVELOPER_ERROR.toBillingResult())
       return
     }
 
@@ -98,7 +118,7 @@ class DebugBillingClient(
     )
     this.billingClientStateListener = listener
     clientState = CONNECTED
-    listener.onBillingSetupFinished(BillingResponse.OK)
+    listener.onBillingSetupFinished(BillingResponseCode.OK.toBillingResult())
   }
 
   override fun endConnection() {
@@ -107,74 +127,100 @@ class DebugBillingClient(
     clientState = CLOSED
   }
 
-  override fun isFeatureSupported(feature: String?): Int {
+  override fun isFeatureSupported(feature: String): BillingResult {
     // TODO Update BillingStore to allow feature enable/disable
     return if (!isReady) {
-      BillingResponse.SERVICE_DISCONNECTED
+      BillingResponseCode.SERVICE_DISCONNECTED.toBillingResult()
     } else {
-      BillingResponse.OK
+      BillingResponseCode.OK.toBillingResult()
     }
   }
 
-  override fun consumeAsync(purchaseToken: String?, listener: ConsumeResponseListener?) {
-    if (purchaseToken == null || purchaseToken.isBlank()) {
-      listener?.onConsumeResponse(BillingResponse.DEVELOPER_ERROR, purchaseToken)
+  override fun consumeAsync(consumeParams: ConsumeParams, listener: ConsumeResponseListener) {
+    if (consumeParams.purchaseToken.isBlank()) {
+      listener.onConsumeResponse(BillingResponseCode.DEVELOPER_ERROR.toBillingResult(), consumeParams.purchaseToken.orEmpty())
       return
     }
 
     backgroundExecutor.execute {
-      val purchase = billingStore.getPurchaseByToken(purchaseToken)
+      val purchase = billingStore.getPurchaseByToken(consumeParams.purchaseToken)
       if (purchase != null) {
         billingStore.removePurchase(purchase.purchaseToken)
-        listener?.onConsumeResponse(BillingResponse.OK, purchaseToken)
+        listener.onConsumeResponse(BillingResponseCode.OK.toBillingResult(), consumeParams.purchaseToken)
       } else {
-        listener?.onConsumeResponse(BillingResponse.ITEM_NOT_OWNED, purchaseToken)
+        listener.onConsumeResponse(BillingResponseCode.ITEM_NOT_OWNED.toBillingResult(), consumeParams.purchaseToken)
       }
     }
   }
 
-  override fun launchBillingFlow(activity: Activity?, params: BillingFlowParams?): Int {
+  override fun launchBillingFlow(activity: Activity, params: BillingFlowParams): BillingResult {
     val intent = Intent(activity, DebugBillingActivity::class.java)
-    intent.putExtra(DebugBillingActivity.REQUEST_SKU_TYPE, params?.skuType)
-    intent.putExtra(DebugBillingActivity.REQUEST_SKU, params?.sku)
-    activity!!.startActivity(intent)
-    return BillingResponse.OK
+    intent.putExtra(DebugBillingActivity.REQUEST_SKU_TYPE, params.skuType)
+    intent.putExtra(DebugBillingActivity.REQUEST_SKU, params.sku)
+    activity.startActivity(intent)
+    return BillingResponseCode.OK.toBillingResult()
   }
 
   override fun queryPurchaseHistoryAsync(
-      skuType: String?, listener: PurchaseHistoryResponseListener?
+      skuType: String, listener: PurchaseHistoryResponseListener
   ) {
     if (!isReady) {
-      listener?.onPurchaseHistoryResponse(BillingResponse.SERVICE_DISCONNECTED, null)
+      listener.onPurchaseHistoryResponse(BillingResponseCode.SERVICE_DISCONNECTED.toBillingResult(), null)
       return
     }
     backgroundExecutor.execute {
       val history = queryPurchases(skuType)
-      listener?.onPurchaseHistoryResponse(history.responseCode, history.purchasesList)
+      listener.onPurchaseHistoryResponse(
+              history.responseCode.toBillingResult(),
+              billingStore.getPurchaseHistoryRecords(skuType)
+      )
     }
   }
 
   override fun querySkuDetailsAsync(
-      params: SkuDetailsParams, listener: SkuDetailsResponseListener?
+      params: SkuDetailsParams, listener: SkuDetailsResponseListener
   ) {
     if (!isReady) {
-      listener?.onSkuDetailsResponse(BillingResponse.SERVICE_DISCONNECTED, null)
+      listener.onSkuDetailsResponse(BillingResponseCode.SERVICE_DISCONNECTED.toBillingResult(), null)
       return
     }
     backgroundExecutor.execute {
-      listener?.onSkuDetailsResponse(BillingResponse.OK, billingStore.getSkuDetails(params))
+      listener.onSkuDetailsResponse(BillingResponseCode.OK.toBillingResult(), billingStore.getSkuDetails(params))
     }
   }
 
-  override fun queryPurchases(@SkuType skuType: String?): Purchase.PurchasesResult {
+  override fun queryPurchases(@SkuType skuType: String): Purchase.PurchasesResult {
     if (!isReady) {
-      return InternalPurchasesResult(BillingResponse.SERVICE_DISCONNECTED, null)
+      return InternalPurchasesResult(BillingResponseCode.SERVICE_DISCONNECTED, null)
     }
-    if (skuType == null || skuType.isBlank()) {
+    if (skuType.isBlank()) {
       logger.w("Please provide a valid SKU type.")
-      return InternalPurchasesResult(BillingResponse.DEVELOPER_ERROR, /* purchasesList */ null)
+      return InternalPurchasesResult(BillingResponseCode.DEVELOPER_ERROR, /* purchasesList */ null)
     }
     return billingStore.getPurchases(skuType)
+  }
+
+  override fun launchPriceChangeConfirmationFlow(
+          activity: Activity,
+          priceChangeFlowParams: PriceChangeFlowParams,
+          priceChangeConfirmationListener: PriceChangeConfirmationListener) {
+    TODO("Not yet implemented")
+  }
+
+  override fun loadRewardedSku(
+          rewardLoadParams: RewardLoadParams,
+          rewardResponseListener: RewardResponseListener
+  ) {
+    TODO("Not yet implemented")
+  }
+
+  override fun acknowledgePurchase(
+          acknowledgePurchaseParams: AcknowledgePurchaseParams,
+          acknowledgePurchaseResponseListener: AcknowledgePurchaseResponseListener
+  ) {
+      billingStore.acknowledgePurchase(acknowledgePurchaseParams.purchaseToken)
+      acknowledgePurchaseResponseListener
+              .onAcknowledgePurchaseResponse(BillingResponseCode.OK.toBillingResult())
   }
 
   // Supplied for easy Java interop.

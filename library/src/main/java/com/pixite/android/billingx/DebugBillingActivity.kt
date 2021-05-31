@@ -11,13 +11,12 @@ import android.view.MotionEvent
 import android.view.WindowManager
 import android.widget.Button
 import android.widget.TextView
-import com.android.billingclient.api.BillingClient.BillingResponse
+import com.android.billingclient.api.BillingClient.BillingResponseCode
 import com.android.billingclient.api.BillingClient.SkuType
 import com.android.billingclient.api.Purchase
 import com.android.billingclient.api.SkuDetails
 import com.android.billingclient.api.SkuDetailsParams
-import com.android.billingclient.util.BillingHelper
-import java.util.Date
+import java.util.*
 
 class DebugBillingActivity : AppCompatActivity() {
 
@@ -26,8 +25,11 @@ class DebugBillingActivity : AppCompatActivity() {
     internal const val RESPONSE_CODE = "response_code_key"
     internal const val RESPONSE_BUNDLE = "response_bundle_key"
     internal const val RESPONSE_INAPP_PURCHASE_DATA = "INAPP_PURCHASE_DATA"
+    internal const val RESPONSE_INAPP_PURCHASE_DATA_LIST = "RESPONSE_INAPP_PURCHASE_DATA_LIST"
+    internal const val RESPONSE_INAPP_SIGNATURE_LIST = "RESPONSE_INAPP_SIGNATURE_LIST"
     internal const val REQUEST_SKU_TYPE = "request_sku_type"
     internal const val REQUEST_SKU = "request_sku"
+    internal const val REQUEST_SKU_DETAILS = "request_sku_details"
     private const val REQUEST_CODE = 100
   }
 
@@ -37,7 +39,8 @@ class DebugBillingActivity : AppCompatActivity() {
   private lateinit var buyButton: Button
 
   private lateinit var prefs: SharedPreferences
-  @SkuType private lateinit var skuType: String
+  @SkuType
+  private lateinit var skuType: String
   private lateinit var item: SkuDetails
   private lateinit var itemJson: String
 
@@ -73,7 +76,7 @@ class DebugBillingActivity : AppCompatActivity() {
 
     // TODO get the response code from a spinner with options
     buyButton.setOnClickListener {
-      broadcastResult(BillingResponse.OK, buildResultBundle(item.toPurchaseData(this, skuType)))
+      broadcastResult(BillingResponseCode.OK, buildResultBundle(item.toPurchaseData(this, skuType)))
       finish()
     }
     window.addFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL)
@@ -95,14 +98,14 @@ class DebugBillingActivity : AppCompatActivity() {
   }
 
   private fun broadcastUserCanceled() {
-    broadcastResult(BillingResponse.USER_CANCELED, Bundle())
+    broadcastResult(BillingResponseCode.USER_CANCELED, Bundle())
   }
 
   private fun buildResultBundle(purchase: Purchase): Bundle {
     return Bundle().apply {
-      putInt(BillingHelper.RESPONSE_CODE, BillingResponse.OK)
-      putStringArrayList(BillingHelper.RESPONSE_INAPP_PURCHASE_DATA_LIST, arrayListOf(purchase.originalJson))
-      putStringArrayList(BillingHelper.RESPONSE_INAPP_SIGNATURE_LIST, arrayListOf(purchase.signature))
+      putInt(RESPONSE_CODE, BillingResponseCode.OK)
+      putStringArrayList(RESPONSE_INAPP_PURCHASE_DATA_LIST, arrayListOf(purchase.originalJson))
+      putStringArrayList(RESPONSE_INAPP_SIGNATURE_LIST, arrayListOf(purchase.signature))
     }
   }
 

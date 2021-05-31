@@ -9,6 +9,7 @@ import com.android.billingclient.api.BillingClient.SkuType
 import com.android.billingclient.api.BillingClientStateListener
 import com.android.billingclient.api.BillingFlowParams
 import com.android.billingclient.api.Purchase
+import com.android.billingclient.api.PurchaseHistoryRecord
 import com.android.billingclient.api.PurchasesUpdatedListener
 import com.android.billingclient.api.SkuDetails
 import com.android.billingclient.api.SkuDetailsParams
@@ -73,8 +74,8 @@ class BillingManager(private val activity: FragmentActivity,
 
   fun restorePurchases() {
     executeServiceRequest {
-      billingClient.queryPurchaseHistoryAsync(SkuType.SUBS) { responseCode, purchasesList ->
-        if (responseCode != BillingResponse.OK) {
+      billingClient.queryPurchaseHistoryAsync(SkuType.SUBS) { billingResult, purchasesList ->
+        if (billingResult.responseCode != BillingClient.BillingResponseCode.OK) {
           // todo handle the error
           return@queryPurchaseHistoryAsync
         }
@@ -86,14 +87,14 @@ class BillingManager(private val activity: FragmentActivity,
     }
   }
 
-  private fun findValidSubscription(purchasesList: List<Purchase>, callback: (Purchase?) -> Unit) {
+  private fun findValidSubscription(purchasesList: List<PurchaseHistoryRecord>?, callback: (Purchase?) -> Unit) {
     if (purchasesList.isEmpty()) {
       callback(null)
       return
     }
 
     val validSkus = listOf(SKU_SUBS)
-    val validPurchases = purchasesList.filter { validSkus.contains(it.sku) }
+    val validPurchases = purchasesList?.filter { validSkus.contains() }
 
     // look for active subscriptions
     val activeSubscription = validPurchases.find { it.isAutoRenewing }
