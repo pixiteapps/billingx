@@ -4,12 +4,11 @@ import android.arch.lifecycle.LiveData
 import android.support.v4.app.FragmentActivity
 import android.util.Log
 import com.android.billingclient.api.BillingClient
-import com.android.billingclient.api.BillingClient.BillingResponse
-import com.android.billingclient.api.BillingClient.SkuType
+import com.android.billingclient.api.BillingClient.*
 import com.android.billingclient.api.BillingClientStateListener
 import com.android.billingclient.api.BillingFlowParams
+import com.android.billingclient.api.BillingResult
 import com.android.billingclient.api.Purchase
-import com.android.billingclient.api.PurchaseHistoryRecord
 import com.android.billingclient.api.PurchasesUpdatedListener
 import com.android.billingclient.api.SkuDetails
 import com.android.billingclient.api.SkuDetailsParams
@@ -38,11 +37,11 @@ class BillingManager(private val activity: FragmentActivity,
   private val billingClient: BillingClient
   private var serviceConnected = false
   private val purchaseUpdateListener: PurchasesUpdatedListener =
-      PurchasesUpdatedListener { responseCode, purchases ->
-        if (responseCode != BillingResponse.OK) {
+      PurchasesUpdatedListener { billingResult, purchases ->
+        if (billingResult.responseCode != BillingResponseCode.OK) {
           // TODO handle errors
-          when (responseCode) {
-            BillingResponse.ITEM_ALREADY_OWNED -> {
+          when (billingResult.responseCode) {
+            BillingResponseCode.ITEM_ALREADY_OWNED -> {
               restorePurchases()
             }
           }
@@ -74,27 +73,20 @@ class BillingManager(private val activity: FragmentActivity,
 
   fun restorePurchases() {
     executeServiceRequest {
-      billingClient.queryPurchaseHistoryAsync(SkuType.SUBS) { billingResult, purchasesList ->
-        if (billingResult.responseCode != BillingClient.BillingResponseCode.OK) {
-          // todo handle the error
-          return@queryPurchaseHistoryAsync
-        }
-
-        findValidSubscription(purchasesList) {
-          subscriptionRepo.setSubscribed(it != null)
-        }
+      findValidSubscription(billingClient.queryPurchases(SkuType.SUBS).purchasesList) {
+        subscriptionRepo.setSubscribed(it != null)
       }
     }
   }
 
-  private fun findValidSubscription(purchasesList: List<PurchaseHistoryRecord>?, callback: (Purchase?) -> Unit) {
+  private fun findValidSubscription(purchasesList: List<Purchase>, callback: (Purchase?) -> Unit) {
     if (purchasesList.isEmpty()) {
       callback(null)
       return
     }
 
     val validSkus = listOf(SKU_SUBS)
-    val validPurchases = purchasesList?.filter { validSkus.contains() }
+    val validPurchases = purchasesList?.filter { validSkus.contains(it.sku) }
 
     // look for active subscriptions
     val activeSubscription = validPurchases.find { it.isAutoRenewing }
@@ -157,8 +149,8 @@ class BillingManager(private val activity: FragmentActivity,
         .setSkusList(skus)
         .build()
     executeServiceRequest {
-      billingClient.querySkuDetailsAsync(params) { responseCode, skuDetailsList ->
-        if (responseCode != BillingResponse.OK) {
+      billingClient.querySkuDetailsAsync(params) { billingResult, skuDetailsList ->
+        if (billingResult.responseCode != BillingResponseCode.OK) {
           // todo deal with this
           return@querySkuDetailsAsync
         }
@@ -170,11 +162,12 @@ class BillingManager(private val activity: FragmentActivity,
 
   fun initiatePurchase(sku: String) {
     executeServiceRequest {
-      val params = BillingFlowParams.newBuilder()
-          .setType(SkuType.SUBS)
-          .setSku(sku)
-          .build()
-      billingClient.launchBillingFlow(activity, params)
+      querySkuDetails(listOf(sku)) {
+        val params = BillingFlowParams.newBuilder()
+                .setSkuDetails(it[0])
+                .build()
+        billingClient.launchBillingFlow(activity, params)
+      }
     }
   }
 
@@ -195,8 +188,8 @@ class BillingManager(private val activity: FragmentActivity,
 
     connecting = true
     billingClient.startConnection(object : BillingClientStateListener {
-      override fun onBillingSetupFinished(responseCode: Int) {
-        if (responseCode == BillingResponse.OK) {
+      override fun onBillingSetupFinished(billingResult: BillingResult) {
+        if (billingResult.responseCode == BillingResponseCode.OK) {
           serviceConnected = true
           onSuccess?.invoke()
         }
