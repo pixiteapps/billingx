@@ -34,7 +34,6 @@ dependencies {
   testImplementation libs.mockitoKotlin
   testImplementation libs.kotlinStdlib
   testImplementation libs.kotlinReflect
-  testImplementation libs.kotlinRuntime
   testImplementation libs.kotlinTest
 
   androidTestImplementation libs.androidTestRunner
