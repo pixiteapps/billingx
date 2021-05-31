@@ -88,7 +88,7 @@ class BillingStoreImpl(private val prefs: SharedPreferences) : BillingStore(){
       if (it.purchaseToken != purchaseToken) {
         return@map it.toJSONObject()
       }
-      it.toJSONObject().also { purchaseJson ->
+      it.toJSONObject().let { purchaseJson ->
         purchaseJson.remove("acknowledged")
         purchaseJson.put("acknowledged", true)
       }
