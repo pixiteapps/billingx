@@ -85,16 +85,11 @@ class BillingStoreImpl(private val prefs: SharedPreferences) : BillingStore(){
   override fun acknowledgePurchase(purchaseToken: String) {
     val allPurchases = prefs.getString(KEY_PURCHASES, "[]").toPurchaseList()
     val acknowledgedPurchases = allPurchases.map {
-      if (it.purchaseToken != purchaseToken) {
-        return@map it.toJSONObject()
-      }
-      it.toJSONObject().let { purchaseJson ->
-        purchaseJson.remove("acknowledged")
-        purchaseJson.put("acknowledged", true)
-      }
+      if (it.purchaseToken != purchaseToken) return@map it
+      PurchaseBuilder.from(it).copy(acknowledged = true).build()
     }
     val json = JSONArray()
-    acknowledgedPurchases.forEach { json.put(it) }
+    acknowledgedPurchases.forEach { json.put(it.toJSONObject()) }
     prefs.edit().putString(KEY_PURCHASES, json.toString()).apply()
   }
 
