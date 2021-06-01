@@ -5,25 +5,29 @@ import android.app.Application
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.IntentFilter
-import com.android.billingclient.api.BillingClient.BillingResponse
+import com.android.billingclient.api.BillingClient.BillingResponseCode
 import com.android.billingclient.api.BillingClient.FeatureType
 import com.android.billingclient.api.BillingClient.SkuType
 import com.android.billingclient.api.BillingClientStateListener
+import com.android.billingclient.api.BillingResult
 import com.android.billingclient.api.InternalPurchasesResult
 import com.android.billingclient.api.Purchase
+import com.android.billingclient.api.PurchaseHistoryRecord
 import com.android.billingclient.api.PurchaseHistoryResponseListener
 import com.android.billingclient.api.PurchasesUpdatedListener
 import com.android.billingclient.api.SkuDetails
 import com.android.billingclient.api.SkuDetailsParams
 import com.android.billingclient.api.SkuDetailsResponseListener
 import com.google.common.truth.Truth.assertThat
-import com.nhaarman.mockito_kotlin.any
-import com.nhaarman.mockito_kotlin.doAnswer
-import com.nhaarman.mockito_kotlin.doReturn
-import com.nhaarman.mockito_kotlin.eq
-import com.nhaarman.mockito_kotlin.mock
 import org.junit.Before
 import org.junit.Test
+import org.mockito.kotlin.any
+import org.mockito.kotlin.doAnswer
+import org.mockito.kotlin.doReturn
+import org.mockito.kotlin.eq
+import org.mockito.kotlin.mock
+import java.io.IOException
+import java.nio.charset.Charset
 import java.util.Date
 import java.util.concurrent.Executor
 
@@ -45,24 +49,45 @@ class DebugBillingClientTest {
 
   private val emptyStateListener = object : BillingClientStateListener {
     override fun onBillingServiceDisconnected() {}
-    override fun onBillingSetupFinished(responseCode: Int) {}
+    override fun onBillingSetupFinished(billingResult: BillingResult) {}
   }
-  private val subsPurchase1 = Purchase("{\"orderId\":\"foo-1234\",\"packageName\":" +
-      "\"com.foo.package\",\"productId\":\"com.foo.package.sku\",\"autoRenewing\":true,\"pur" +
-      "chaseTime\":\"${Date().time}\",\"token\":\"1234567890\"}",
-      "debug-signature-com.foo.package.sku-subs")
-  private val subsPurchase2 = Purchase("{\"orderId\":\"bar-1234\",\"packageName\":\"" +
-      "com.bar.package\",\"productId\":\"com.bar.package.sku\",\"autoRenewing\":false,\"purcha" +
-      "seTime\":\"${Date().time}\",\"purchaseToken\":\"0987654321\"}",
-      "debug-signature-com.bar.package.sku-subs")
-  private val inappPurchase1 = Purchase("{\"orderId\":\"foo-1234\",\"packageName\":" +
-      "\"com.foo.package\",\"productId\":\"com.foo.package.sku\",\"autoRenewing\":true,\"pur" +
-      "chaseTime\":\"${Date().time}\",\"token\":\"1234567890\"}",
-      "debug-signature-com.foo.package.sku-inapp")
-  private val inappPurchase2 = Purchase("{\"orderId\":\"bar-1234\",\"packageName\":\"" +
-      "com.bar.package\",\"productId\":\"com.bar.package.sku\",\"autoRenewing\":false,\"purcha" +
-      "seTime\":\"${Date().time}\",\"purchaseToken\":\"0987654321\"}",
-      "debug-signature-com.bar.package.sku-inapp")
+
+  private fun getJson(jsonFileName: String): String {
+    return try {
+      val inputStream = javaClass.classLoader?.getResourceAsStream(jsonFileName) ?: return ""
+      val size = inputStream.available()
+      val buffer = ByteArray(size)
+      inputStream.read(buffer)
+      inputStream.close()
+      String(buffer, Charset.forName("UTF-8"))
+    } catch (e: IOException) {
+      ""
+    }
+  }
+  private fun String.replacePurchaseTime(): String =
+          replace("purchase_time", "${Date().time}")
+
+  private val subsPurchase1Json = getJson("subs_purchase_1.json").replacePurchaseTime()
+  private val subsPurchase1 =
+          Purchase(subsPurchase1Json, "debug-signature-com.foo.package.sku-subs")
+  private val subsPurchaseHistoryRecord1 =
+          PurchaseHistoryRecord(subsPurchase1Json, "debug-signature-com.foo.package.sku-subs")
+  private val subsPurchase2Json = getJson("subs_purchase_2.json").replacePurchaseTime()
+  private val subsPurchase2 =
+          Purchase(subsPurchase2Json, "debug-signature-com.bar.package.sku-subs")
+  private val subsPurchaseHistoryRecord2 =
+          PurchaseHistoryRecord(subsPurchase2Json, "debug-signature-com.bar.package.sku-subs")
+
+  private val inappPurchase1Json = getJson("in_app_purchase_1.json").replacePurchaseTime()
+  private val inappPurchase1 =
+          Purchase(inappPurchase1Json, "debug-signature-com.foo.package.sku-inapp")
+  private val inappPurchaseHistoryRecord1 =
+          PurchaseHistoryRecord(inappPurchase1Json, "debug-signature-com.foo.package.sku-inapp")
+  private val inappPurchase2Json = getJson("in_app_purchase_2.json").replacePurchaseTime()
+  private val inappPurchase2 =
+          Purchase(inappPurchase2Json, "debug-signature-com.bar.package.sku-inapp")
+  private val inappPurchaseHistoryRecord2 =
+          PurchaseHistoryRecord(inappPurchase2Json, "debug-signature-com.foo.package.sku-inapp")
 
   private val subs1Json = "{\"productId\":\"com.foo.package.sku\",\"type\":\"" +
       "subs\",\"price\":\"\$4.99\",\"price_amount_micros\":\"4990000\",\"price_currency_code\":\"" +
@@ -84,8 +109,10 @@ class DebugBillingClientTest {
       on { applicationContext } doReturn application
     }
     store = mock {
-      on { getPurchases(eq(SkuType.INAPP)) } doReturn InternalPurchasesResult(BillingResponse.OK, listOf(inappPurchase1, inappPurchase2))
-      on { getPurchases(eq(SkuType.SUBS)) } doReturn InternalPurchasesResult(BillingResponse.OK, listOf(subsPurchase1, subsPurchase2))
+      on { getPurchases(eq(SkuType.INAPP)) } doReturn InternalPurchasesResult(BillingResponseCode.OK, listOf(inappPurchase1, inappPurchase2))
+      on { getPurchases(eq(SkuType.SUBS)) } doReturn InternalPurchasesResult(BillingResponseCode.OK, listOf(subsPurchase1, subsPurchase2))
+      on { getPurchaseHistoryRecords(eq(SkuType.INAPP)) } doReturn listOf(inappPurchaseHistoryRecord1, inappPurchaseHistoryRecord2)
+      on { getPurchaseHistoryRecords(eq(SkuType.SUBS)) } doReturn listOf(subsPurchaseHistoryRecord1, subsPurchaseHistoryRecord2)
       on { getSkuDetails(any()) } doAnswer {
         val params = it.arguments.first() as SkuDetailsParams
         when (params.skuType) {
@@ -105,8 +132,8 @@ class DebugBillingClientTest {
     val responseListener = object : BillingClientStateListener {
       override fun onBillingServiceDisconnected() {}
 
-      override fun onBillingSetupFinished(responseCode: Int) {
-        response = responseCode
+      override fun onBillingSetupFinished(billingResult: BillingResult) {
+        response = billingResult.responseCode
       }
     }
     client.startConnection(responseListener)
@@ -115,25 +142,25 @@ class DebugBillingClientTest {
     client.endConnection()
 
     client.startConnection(responseListener)
-    assertThat(response).isEqualTo(BillingResponse.DEVELOPER_ERROR)
+    assertThat(response).isEqualTo(BillingResponseCode.DEVELOPER_ERROR)
   }
 
   @Test fun methodsFailWithoutStartedConnection() {
     assertThat(client.isReady).isFalse()
-    assertThat(client.isFeatureSupported(FeatureType.SUBSCRIPTIONS))
-        .isEqualTo(BillingResponse.SERVICE_DISCONNECTED)
+    assertThat(client.isFeatureSupported(FeatureType.SUBSCRIPTIONS).responseCode)
+        .isEqualTo(BillingResponseCode.SERVICE_DISCONNECTED)
 
     // connect
     client.startConnection(emptyStateListener)
 
     assertThat(client.isReady).isTrue()
-    assertThat(client.isFeatureSupported(FeatureType.SUBSCRIPTIONS))
-        .isEqualTo(BillingResponse.OK)
+    assertThat(client.isFeatureSupported(FeatureType.SUBSCRIPTIONS).responseCode)
+        .isEqualTo(BillingResponseCode.OK)
   }
 
   @Test fun queryPurchasesReturnsDisconnected() {
     val response = client.queryPurchases("com.foo")
-    assertThat(response.responseCode).isEqualTo(BillingResponse.SERVICE_DISCONNECTED)
+    assertThat(response.responseCode).isEqualTo(BillingResponseCode.SERVICE_DISCONNECTED)
     assertThat(response.purchasesList).isNull()
   }
 
@@ -141,18 +168,18 @@ class DebugBillingClientTest {
     client.startConnection(emptyStateListener)
 
     val response = client.queryPurchases(SkuType.SUBS)
-    assertThat(response.responseCode).isEqualTo(BillingResponse.OK)
-    assertThat(response.purchasesList[0]).isEqualTo(subsPurchase1)
-    assertThat(response.purchasesList[1]).isEqualTo(subsPurchase2)
+    assertThat(response.responseCode).isEqualTo(BillingResponseCode.OK)
+    assertThat(response.purchasesList?.get(0)).isEqualTo(subsPurchase1)
+    assertThat(response.purchasesList?.get(1)).isEqualTo(subsPurchase2)
   }
 
   @Test fun queryPurchasesReturnsSavedInAppPurchases() {
     client.startConnection(emptyStateListener)
 
     val response = client.queryPurchases(SkuType.INAPP)
-    assertThat(response.responseCode).isEqualTo(BillingResponse.OK)
-    assertThat(response.purchasesList[0]).isEqualTo(inappPurchase1)
-    assertThat(response.purchasesList[1]).isEqualTo(inappPurchase2)
+    assertThat(response.responseCode).isEqualTo(BillingResponseCode.OK)
+    assertThat(response.purchasesList?.get(0)).isEqualTo(inappPurchase1)
+    assertThat(response.purchasesList?.get(1)).isEqualTo(inappPurchase2)
   }
 
   @Test fun querySkuDetailsAsyncReturnsDisconnected() {
@@ -160,7 +187,7 @@ class DebugBillingClientTest {
     client.querySkuDetailsAsync(SkuDetailsParams.newBuilder()
         .setType(SkuType.SUBS).setSkusList(listOf()).build(), listener)
 
-    assertThat(listener.responseCode).isEqualTo(BillingResponse.SERVICE_DISCONNECTED)
+    assertThat(listener.responseCode).isEqualTo(BillingResponseCode.SERVICE_DISCONNECTED)
     assertThat(listener.skuDetailsList).isNull()
   }
 
@@ -174,7 +201,7 @@ class DebugBillingClientTest {
             .build(),
         listener)
 
-    assertThat(listener.responseCode).isEqualTo(BillingResponse.OK)
+    assertThat(listener.responseCode).isEqualTo(BillingResponseCode.OK)
     assertThat(listener.skuDetailsList).containsExactlyElementsIn(listOf(subs1, subs2))
   }
 
@@ -188,15 +215,15 @@ class DebugBillingClientTest {
             .build(),
         listener)
 
-    assertThat(listener.responseCode).isEqualTo(BillingResponse.OK)
+    assertThat(listener.responseCode).isEqualTo(BillingResponseCode.OK)
     assertThat(listener.skuDetailsList).containsExactlyElementsIn(listOf(inapp1))
   }
 
   @Test fun queryPurchaseHistoryAsyncReturnsDisconnected() {
     val listener = FakePurchaseHistoryResponseListener()
     client.queryPurchaseHistoryAsync(SkuType.SUBS, listener)
-    assertThat(listener.responseCode).isEqualTo(BillingResponse.SERVICE_DISCONNECTED)
-    assertThat(listener.purchasesList).isNull()
+    assertThat(listener.responseCode).isEqualTo(BillingResponseCode.SERVICE_DISCONNECTED)
+    assertThat(listener.purchaseHistoryRecordList).isNull()
   }
 
   @Test fun queryPurchaseHistoryAsyncReturnsSavedSubscriptions() {
@@ -204,8 +231,9 @@ class DebugBillingClientTest {
 
     val listener = FakePurchaseHistoryResponseListener()
     client.queryPurchaseHistoryAsync(SkuType.SUBS, listener)
-    assertThat(listener.responseCode).isEqualTo(BillingResponse.OK)
-    assertThat(listener.purchasesList).containsExactlyElementsIn(listOf(subsPurchase1, subsPurchase2))
+    assertThat(listener.responseCode).isEqualTo(BillingResponseCode.OK)
+    assertThat(listener.purchaseHistoryRecordList)
+            .containsExactlyElementsIn(listOf(subsPurchaseHistoryRecord1, subsPurchaseHistoryRecord2))
   }
 
   @Test fun queryPurchaseHistoryAsyncReturnsSavedInAppProducts() {
@@ -213,33 +241,34 @@ class DebugBillingClientTest {
 
     val listener = FakePurchaseHistoryResponseListener()
     client.queryPurchaseHistoryAsync(SkuType.INAPP, listener)
-    assertThat(listener.responseCode).isEqualTo(BillingResponse.OK)
-    assertThat(listener.purchasesList).containsExactlyElementsIn(listOf(inappPurchase1, inappPurchase2))
+    assertThat(listener.responseCode).isEqualTo(BillingResponseCode.OK)
+    assertThat(listener.purchaseHistoryRecordList)
+            .containsExactlyElementsIn(listOf(inappPurchaseHistoryRecord1, inappPurchaseHistoryRecord2))
   }
 
   class FakeSkuDetailsResponseListener : SkuDetailsResponseListener {
     var responseCode: Int? = null
     var skuDetailsList: List<SkuDetails>? = null
-    override fun onSkuDetailsResponse(responseCode: Int, skuDetailsList: MutableList<SkuDetails>?) {
-      this.responseCode = responseCode
+    override fun onSkuDetailsResponse(billingResult: BillingResult, skuDetailsList: MutableList<SkuDetails>?) {
+      this.responseCode = billingResult.responseCode
       this.skuDetailsList = skuDetailsList
     }
   }
 
   class FakePurchaseHistoryResponseListener : PurchaseHistoryResponseListener {
     var responseCode: Int? = null
-    var purchasesList: MutableList<Purchase>? = null
-    override fun onPurchaseHistoryResponse(responseCode: Int, purchasesList: MutableList<Purchase>?) {
-      this.responseCode = responseCode
-      this.purchasesList = purchasesList
+    var purchaseHistoryRecordList: MutableList<PurchaseHistoryRecord>? = null
+    override fun onPurchaseHistoryResponse(billingResult: BillingResult, purchaseHistoryRecord: MutableList<PurchaseHistoryRecord>?) {
+      this.responseCode = billingResult.responseCode
+      this.purchaseHistoryRecordList = purchaseHistoryRecord
     }
   }
 
   class FakePurchasesUpdatedListener : PurchasesUpdatedListener {
     var responseCode: Int? = null
     var purchasesList: MutableList<Purchase>? = null
-    override fun onPurchasesUpdated(responseCode: Int, purchases: MutableList<Purchase>?) {
-      this.responseCode = responseCode
+    override fun onPurchasesUpdated(billingResult: BillingResult, purchases: MutableList<Purchase>?) {
+      this.responseCode = billingResult.responseCode
       this.purchasesList = purchases
     }
   }
