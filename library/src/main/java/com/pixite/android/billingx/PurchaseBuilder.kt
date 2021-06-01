@@ -29,4 +29,20 @@ data class PurchaseBuilder(
     developerPayload?.let { json.put("developerPayload", it) }
     return Purchase(json.toString(), signature)
   }
+
+  companion object {
+    fun from(purchase: Purchase): PurchaseBuilder {
+      return PurchaseBuilder(
+              orderId = purchase.orderId,
+              packageName = purchase.packageName,
+              sku = purchase.sku,
+              purchaseTime = purchase.purchaseTime,
+              purchaseToken = purchase.purchaseToken,
+              signature = purchase.signature,
+              purchaseState = purchase.purchaseState,
+              acknowledged = purchase.isAcknowledged,
+              isAutoRenewing = purchase.isAutoRenewing
+      )
+    }
+  }
 }
