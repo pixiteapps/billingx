@@ -4,5 +4,7 @@
   "productId": "com.foo.package.sku",
   "autoRenewing": true,
   "purchaseTime": "purchase_time",
+  "acknowledged": true,
+  "purchaseState": 1,
   "token": "1234567890"
 }

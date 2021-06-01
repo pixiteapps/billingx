@@ -4,5 +4,7 @@
   "productId":"com.bar.package.sku",
   "autoRenewing":false,
   "purchaseTime":"purchase_time",
+  "acknowledged": false,
+  "purchaseState": 4,
   "token":"1234567890"
 }
