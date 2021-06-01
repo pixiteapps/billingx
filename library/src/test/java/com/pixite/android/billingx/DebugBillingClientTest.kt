@@ -15,6 +15,8 @@ import org.mockito.kotlin.doAnswer
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.eq
 import org.mockito.kotlin.mock
+import java.io.IOException
+import java.nio.charset.Charset
 import java.util.Date
 import java.util.concurrent.Executor
 
@@ -38,31 +40,39 @@ class DebugBillingClientTest {
     override fun onBillingServiceDisconnected() {}
     override fun onBillingSetupFinished(billingResult: BillingResult) {}
   }
-  private val subsPurchase1Json = "{\"orderId\":\"foo-1234\",\"packageName\":" +
-          "\"com.foo.package\",\"productId\":\"com.foo.package.sku\",\"autoRenewing\":true,\"pur" +
-          "chaseTime\":\"${Date().time}\",\"token\":\"1234567890\"}"
+
+  private fun getJson(jsonFileName: String): String {
+    return try {
+      val inputStream = javaClass.classLoader?.getResourceAsStream(jsonFileName) ?: return ""
+      val size = inputStream.available()
+      val buffer = ByteArray(size)
+      inputStream.read(buffer)
+      inputStream.close()
+      String(buffer, Charset.forName("UTF-8"))
+    } catch (e: IOException) {
+      ""
+    }
+  }
+  private fun String.replacePurchaseTime(): String =
+          replace("purchase_time", "${Date().time}")
+
+  private val subsPurchase1Json = getJson("subs_purchase_1.json").replacePurchaseTime()
   private val subsPurchase1 =
           Purchase(subsPurchase1Json, "debug-signature-com.foo.package.sku-subs")
   private val subsPurchaseHistoryRecord1 =
           PurchaseHistoryRecord(subsPurchase1Json, "debug-signature-com.foo.package.sku-subs")
-  private val subsPurchase2Json = "{\"orderId\":\"bar-1234\",\"packageName\":\"" +
-          "com.bar.package\",\"productId\":\"com.bar.package.sku\",\"autoRenewing\":false,\"purcha" +
-          "seTime\":\"${Date().time}\",\"purchaseToken\":\"0987654321\"}"
+  private val subsPurchase2Json = getJson("subs_purchase_2.json").replacePurchaseTime()
   private val subsPurchase2 =
           Purchase(subsPurchase2Json, "debug-signature-com.bar.package.sku-subs")
   private val subsPurchaseHistoryRecord2 =
           PurchaseHistoryRecord(subsPurchase2Json, "debug-signature-com.bar.package.sku-subs")
 
-  private val inappPurchase1Json = "{\"orderId\":\"foo-1234\",\"packageName\":" +
-          "\"com.foo.package\",\"productId\":\"com.foo.package.sku\",\"autoRenewing\":true,\"pur" +
-          "chaseTime\":\"${Date().time}\",\"token\":\"1234567890\"}"
+  private val inappPurchase1Json = getJson("in_app_purchase_1.json").replacePurchaseTime()
   private val inappPurchase1 =
           Purchase(inappPurchase1Json, "debug-signature-com.foo.package.sku-inapp")
   private val inappPurchaseHistoryRecord1 =
           PurchaseHistoryRecord(inappPurchase1Json, "debug-signature-com.foo.package.sku-inapp")
-  private val inappPurchase2Json = "{\"orderId\":\"bar-1234\",\"packageName\":\"" +
-          "com.bar.package\",\"productId\":\"com.bar.package.sku\",\"autoRenewing\":false,\"purcha" +
-          "seTime\":\"${Date().time}\",\"purchaseToken\":\"0987654321\"}"
+  private val inappPurchase2Json = getJson("in_app_purchase_2.json").replacePurchaseTime()
   private val inappPurchase2 =
           Purchase(inappPurchase2Json, "debug-signature-com.bar.package.sku-inapp")
   private val inappPurchaseHistoryRecord2 =

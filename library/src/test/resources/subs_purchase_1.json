@@ -1,0 +1,8 @@
+{
+  "orderId":"foo-1234",
+  "packageName":"com.foo.package",
+  "productId":"com.foo.package.sku",
+  "autoRenewing":true,
+  "purchaseTime":"purchase_time",
+  "token":"0987654321"
+}

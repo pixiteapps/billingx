@@ -1,0 +1,8 @@
+{
+  "orderId": "bar-1234",
+  "packageName": "com.bar.package",
+  "productId": "com.bar.package.sku",
+  "autoRenewing": false,
+  "purchaseTime": "purchase_time",
+  "purchaseToken": "0987654321"
+}
