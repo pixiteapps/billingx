@@ -113,14 +113,14 @@ class DebugBillingClientTest {
 
   @Test fun methodsFailWithoutStartedConnection() {
     assertThat(client.isReady).isFalse()
-    assertThat(client.isFeatureSupported(FeatureType.SUBSCRIPTIONS))
+    assertThat(client.isFeatureSupported(FeatureType.SUBSCRIPTIONS).responseCode)
         .isEqualTo(BillingResponseCode.SERVICE_DISCONNECTED)
 
     // connect
     client.startConnection(emptyStateListener)
 
     assertThat(client.isReady).isTrue()
-    assertThat(client.isFeatureSupported(FeatureType.SUBSCRIPTIONS))
+    assertThat(client.isFeatureSupported(FeatureType.SUBSCRIPTIONS).responseCode)
         .isEqualTo(BillingResponseCode.OK)
   }
 
