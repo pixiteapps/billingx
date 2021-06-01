@@ -26,6 +26,7 @@ import com.android.billingclient.api.SkuDetailsResponseListener
 import com.pixite.android.billingx.DebugBillingClient.ClientState.CLOSED
 import com.pixite.android.billingx.DebugBillingClient.ClientState.CONNECTED
 import com.pixite.android.billingx.DebugBillingClient.ClientState.DISCONNECTED
+import java.lang.Exception
 import java.util.concurrent.Executor
 import java.util.concurrent.Executors
 
@@ -204,14 +205,14 @@ class DebugBillingClient(
           activity: Activity,
           priceChangeFlowParams: PriceChangeFlowParams,
           priceChangeConfirmationListener: PriceChangeConfirmationListener) {
-    TODO("Not yet implemented")
+    throw NotImplementedError("This method is not supported")
   }
 
   override fun loadRewardedSku(
           rewardLoadParams: RewardLoadParams,
           rewardResponseListener: RewardResponseListener
   ) {
-    TODO("Not yet implemented")
+    throw NotImplementedError("This method is not supported")
   }
 
   override fun acknowledgePurchase(
