@@ -40,22 +40,35 @@ class DebugBillingClientTest {
     override fun onBillingServiceDisconnected() {}
     override fun onBillingSetupFinished(billingResult: BillingResult) {}
   }
-  private val subsPurchase1 = Purchase("{\"orderId\":\"foo-1234\",\"packageName\":" +
-      "\"com.foo.package\",\"productId\":\"com.foo.package.sku\",\"autoRenewing\":true,\"pur" +
-      "chaseTime\":\"${Date().time}\",\"token\":\"1234567890\"}",
-      "debug-signature-com.foo.package.sku-subs")
-  private val subsPurchase2 = Purchase("{\"orderId\":\"bar-1234\",\"packageName\":\"" +
-      "com.bar.package\",\"productId\":\"com.bar.package.sku\",\"autoRenewing\":false,\"purcha" +
-      "seTime\":\"${Date().time}\",\"purchaseToken\":\"0987654321\"}",
-      "debug-signature-com.bar.package.sku-subs")
-  private val inappPurchase1 = Purchase("{\"orderId\":\"foo-1234\",\"packageName\":" +
-      "\"com.foo.package\",\"productId\":\"com.foo.package.sku\",\"autoRenewing\":true,\"pur" +
-      "chaseTime\":\"${Date().time}\",\"token\":\"1234567890\"}",
-      "debug-signature-com.foo.package.sku-inapp")
-  private val inappPurchase2 = Purchase("{\"orderId\":\"bar-1234\",\"packageName\":\"" +
-      "com.bar.package\",\"productId\":\"com.bar.package.sku\",\"autoRenewing\":false,\"purcha" +
-      "seTime\":\"${Date().time}\",\"purchaseToken\":\"0987654321\"}",
-      "debug-signature-com.bar.package.sku-inapp")
+  private val subsPurchase1Json = "{\"orderId\":\"foo-1234\",\"packageName\":" +
+          "\"com.foo.package\",\"productId\":\"com.foo.package.sku\",\"autoRenewing\":true,\"pur" +
+          "chaseTime\":\"${Date().time}\",\"token\":\"1234567890\"}"
+  private val subsPurchase1 =
+          Purchase(subsPurchase1Json, "debug-signature-com.foo.package.sku-subs")
+  private val subsPurchaseHistoryRecord1 =
+          PurchaseHistoryRecord(subsPurchase1Json, "debug-signature-com.foo.package.sku-subs")
+  private val subsPurchase2Json = "{\"orderId\":\"bar-1234\",\"packageName\":\"" +
+          "com.bar.package\",\"productId\":\"com.bar.package.sku\",\"autoRenewing\":false,\"purcha" +
+          "seTime\":\"${Date().time}\",\"purchaseToken\":\"0987654321\"}"
+  private val subsPurchase2 =
+          Purchase(subsPurchase2Json, "debug-signature-com.bar.package.sku-subs")
+  private val subsPurchaseHistoryRecord2 =
+          PurchaseHistoryRecord(subsPurchase2Json, "debug-signature-com.bar.package.sku-subs")
+
+  private val inappPurchase1Json = "{\"orderId\":\"foo-1234\",\"packageName\":" +
+          "\"com.foo.package\",\"productId\":\"com.foo.package.sku\",\"autoRenewing\":true,\"pur" +
+          "chaseTime\":\"${Date().time}\",\"token\":\"1234567890\"}"
+  private val inappPurchase1 =
+          Purchase(inappPurchase1Json, "debug-signature-com.foo.package.sku-inapp")
+  private val inappPurchaseHistoryRecord1 =
+          PurchaseHistoryRecord(inappPurchase1Json, "debug-signature-com.foo.package.sku-inapp")
+  private val inappPurchase2Json = "{\"orderId\":\"bar-1234\",\"packageName\":\"" +
+          "com.bar.package\",\"productId\":\"com.bar.package.sku\",\"autoRenewing\":false,\"purcha" +
+          "seTime\":\"${Date().time}\",\"purchaseToken\":\"0987654321\"}"
+  private val inappPurchase2 =
+          Purchase(inappPurchase2Json, "debug-signature-com.bar.package.sku-inapp")
+  private val inappPurchaseHistoryRecord2 =
+          PurchaseHistoryRecord(inappPurchase2Json, "debug-signature-com.foo.package.sku-inapp")
 
   private val subs1Json = "{\"productId\":\"com.foo.package.sku\",\"type\":\"" +
       "subs\",\"price\":\"\$4.99\",\"price_amount_micros\":\"4990000\",\"price_currency_code\":\"" +
@@ -79,6 +92,8 @@ class DebugBillingClientTest {
     store = mock {
       on { getPurchases(eq(SkuType.INAPP)) } doReturn InternalPurchasesResult(BillingResponseCode.OK, listOf(inappPurchase1, inappPurchase2))
       on { getPurchases(eq(SkuType.SUBS)) } doReturn InternalPurchasesResult(BillingResponseCode.OK, listOf(subsPurchase1, subsPurchase2))
+      on { getPurchaseHistoryRecords(eq(SkuType.INAPP)) } doReturn listOf(inappPurchaseHistoryRecord1, inappPurchaseHistoryRecord2)
+      on { getPurchaseHistoryRecords(eq(SkuType.SUBS)) } doReturn listOf(subsPurchaseHistoryRecord1, subsPurchaseHistoryRecord2)
       on { getSkuDetails(any()) } doAnswer {
         val params = it.arguments.first() as SkuDetailsParams
         when (params.skuType) {
@@ -198,7 +213,8 @@ class DebugBillingClientTest {
     val listener = FakePurchaseHistoryResponseListener()
     client.queryPurchaseHistoryAsync(SkuType.SUBS, listener)
     assertThat(listener.responseCode).isEqualTo(BillingResponseCode.OK)
-    assertThat(listener.purchaseHistoryRecordList).containsExactlyElementsIn(listOf(subsPurchase1, subsPurchase2))
+    assertThat(listener.purchaseHistoryRecordList)
+            .containsExactlyElementsIn(listOf(subsPurchaseHistoryRecord1, subsPurchaseHistoryRecord2))
   }
 
   @Test fun queryPurchaseHistoryAsyncReturnsSavedInAppProducts() {
@@ -207,7 +223,8 @@ class DebugBillingClientTest {
     val listener = FakePurchaseHistoryResponseListener()
     client.queryPurchaseHistoryAsync(SkuType.INAPP, listener)
     assertThat(listener.responseCode).isEqualTo(BillingResponseCode.OK)
-    assertThat(listener.purchaseHistoryRecordList).containsExactlyElementsIn(listOf(inappPurchase1, inappPurchase2))
+    assertThat(listener.purchaseHistoryRecordList)
+            .containsExactlyElementsIn(listOf(inappPurchaseHistoryRecord1, inappPurchaseHistoryRecord2))
   }
 
   class FakeSkuDetailsResponseListener : SkuDetailsResponseListener {
