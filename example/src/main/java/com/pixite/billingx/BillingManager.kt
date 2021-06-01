@@ -4,7 +4,8 @@ import android.arch.lifecycle.LiveData
 import android.support.v4.app.FragmentActivity
 import android.util.Log
 import com.android.billingclient.api.BillingClient
-import com.android.billingclient.api.BillingClient.*
+import com.android.billingclient.api.BillingClient.BillingResponseCode
+import com.android.billingclient.api.BillingClient.SkuType
 import com.android.billingclient.api.BillingClientStateListener
 import com.android.billingclient.api.BillingFlowParams
 import com.android.billingclient.api.BillingResult
