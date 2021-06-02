@@ -4,6 +4,7 @@ import android.content.Context
 import android.support.v7.app.AppCompatActivity
 import com.android.billingclient.api.BillingClient
 import com.android.billingclient.api.Purchase
+import com.android.billingclient.api.PurchaseHistoryRecord
 import com.android.billingclient.api.SkuDetails
 import com.android.billingclient.api.SkuDetailsParams
 
@@ -34,6 +35,9 @@ abstract class BillingStore {
   abstract fun addPurchase(purchase: Purchase): BillingStore
   abstract fun clearPurchases(): BillingStore
   abstract fun getPurchases(@BillingClient.SkuType skuType: String): Purchase.PurchasesResult
+  abstract fun getPurchaseHistoryRecords(@BillingClient.SkuType skuType: String): List<PurchaseHistoryRecord>
   abstract fun getPurchaseByToken(purchaseToken: String): Purchase?
   abstract fun removePurchase(purchaseToken: String): BillingStore
+
+  abstract fun acknowledgePurchase(purchaseToken: String)
 }

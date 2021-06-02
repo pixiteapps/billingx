@@ -17,7 +17,7 @@
 apply plugin: 'maven'
 apply plugin: 'signing'
 apply plugin: 'kotlin-android'
-apply plugin: 'org.jetbrains.dokka-android'
+apply plugin: 'org.jetbrains.dokka'
 
 version = VERSION_NAME
 group = GROUP
@@ -137,16 +137,13 @@ afterEvaluate { project ->
       }
     }
 
-    // Waiting of fix of https://github.com/Kotlin/dokka/issues/214
-    // task androidJavadocs(type: org.jetbrains.dokka.gradle.DokkaAndroidTask) {
-    task androidJavadocs(type: dokka.class) {
-      outputFormat = 'javadoc'
-      outputDirectory = "$buildDir/javadoc"
+    tasks.dokkaJavadoc.configure {
+      outputDirectory.set(file("$buildDir/javadoc"))
     }
 
-    task androidJavadocsJar(type: Jar, dependsOn: androidJavadocs) {
+    task androidJavadocsJar(type: Jar, dependsOn: dokkaJavadoc) {
       classifier = 'javadoc'
-      from androidJavadocs.outputDirectory
+      from dokkaJavadoc.outputDirectory
     }
 
     task androidSourcesJar(type: Jar) {
