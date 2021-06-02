@@ -19,8 +19,6 @@ import com.android.billingclient.api.PriceChangeFlowParams
 import com.android.billingclient.api.Purchase
 import com.android.billingclient.api.PurchaseHistoryResponseListener
 import com.android.billingclient.api.PurchasesUpdatedListener
-import com.android.billingclient.api.RewardLoadParams
-import com.android.billingclient.api.RewardResponseListener
 import com.android.billingclient.api.SkuDetailsParams
 import com.android.billingclient.api.SkuDetailsResponseListener
 import com.pixite.android.billingx.DebugBillingClient.ClientState.CLOSED
@@ -204,13 +202,6 @@ class DebugBillingClient(
           activity: Activity,
           priceChangeFlowParams: PriceChangeFlowParams,
           priceChangeConfirmationListener: PriceChangeConfirmationListener) {
-    throw NotImplementedError("This method is not supported")
-  }
-
-  override fun loadRewardedSku(
-          rewardLoadParams: RewardLoadParams,
-          rewardResponseListener: RewardResponseListener
-  ) {
     throw NotImplementedError("This method is not supported")
   }
 

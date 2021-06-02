@@ -62,7 +62,7 @@ class BillingManager(private val activity: FragmentActivity,
       // load local purchases from the cache
       executors.networkIO.execute {
         val purchases = billingClient.queryPurchases(SkuType.SUBS)
-        val validPurchase = purchases.purchasesList.find { SKU_SUBS == it.sku }
+        val validPurchase = purchases.purchasesList?.find { SKU_SUBS == it.sku }
         if (validPurchase != null) {
           subscriptionRepo.setSubscribed(true)
         } else {
@@ -74,7 +74,7 @@ class BillingManager(private val activity: FragmentActivity,
 
   fun restorePurchases() {
     executeServiceRequest {
-      findValidSubscription(billingClient.queryPurchases(SkuType.SUBS).purchasesList) {
+      findValidSubscription(billingClient.queryPurchases(SkuType.SUBS).purchasesList.orEmpty()) {
         subscriptionRepo.setSubscribed(it != null)
       }
     }
@@ -156,7 +156,7 @@ class BillingManager(private val activity: FragmentActivity,
           return@querySkuDetailsAsync
         }
 
-        callback(skuDetailsList)
+        callback(skuDetailsList.orEmpty())
       }
     }
   }
