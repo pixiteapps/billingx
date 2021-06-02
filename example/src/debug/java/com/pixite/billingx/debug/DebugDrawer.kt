@@ -1,24 +1,24 @@
 package com.pixite.billingx.debug
 
-import android.arch.lifecycle.Observer
 import android.os.Bundle
-import android.support.v4.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Switch
+import androidx.appcompat.widget.SwitchCompat
+import androidx.fragment.app.Fragment
+import androidx.lifecycle.Observer
 import com.pixite.android.billingx.BillingStore
 import com.pixite.android.billingx.PurchaseBuilder
 import com.pixite.billingx.BillingManager
 import com.pixite.billingx.R
 import com.pixite.billingx.SubscriptionRepository
 import com.pixite.billingx.injection
-import com.pixite.billingx.util.bindView
 import java.util.Date
 
 class DebugDrawer : Fragment() {
 
-  private val subscriptionSwitch: Switch by bindView(R.id.subscription)
+  private lateinit var subscriptionSwitch: SwitchCompat
 
   private val subsRepo: SubscriptionRepository by lazy(LazyThreadSafetyMode.NONE) {
     activity!!.injection().subscriptionRepository
@@ -26,6 +26,11 @@ class DebugDrawer : Fragment() {
 
   override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
     return inflater.inflate(R.layout.debug_drawer, container, false)
+  }
+
+  override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+    super.onViewCreated(view, savedInstanceState)
+    subscriptionSwitch = view.findViewById(R.id.subscription)
   }
 
   override fun onActivityCreated(savedInstanceState: Bundle?) {

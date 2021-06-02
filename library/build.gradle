@@ -27,6 +27,7 @@ dependencies {
   implementation libs.appCompat
   implementation libs.kotlinStdlibJdk7
   implementation libs.constraintLayout
+  implementation libs.localBroadcastManager
 
   testImplementation libs.junit
   testImplementation libs.truth

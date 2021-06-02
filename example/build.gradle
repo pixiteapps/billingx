@@ -28,7 +28,8 @@ dependencies {
   implementation libs.appCompat
   implementation libs.archLifecycleCommon
   implementation libs.archLifecycleRuntime
-  implementation libs.archLifecycleExtensions
+  implementation libs.archLifecycleViewModel
+  implementation libs.archLifecycleLiveData
   implementation libs.constraintLayout
   implementation libs.design
   implementation libs.threeTenABP

@@ -4,13 +4,13 @@ import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
 import android.os.Bundle
-import android.support.v4.content.LocalBroadcastManager
-import android.support.v7.app.AppCompatActivity
 import android.util.Log
 import android.view.MotionEvent
 import android.view.WindowManager
 import android.widget.Button
 import android.widget.TextView
+import androidx.appcompat.app.AppCompatActivity
+import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import com.android.billingclient.api.BillingClient.BillingResponseCode
 import com.android.billingclient.api.BillingClient.SkuType
 import com.android.billingclient.api.Purchase
@@ -56,7 +56,7 @@ class DebugBillingActivity : AppCompatActivity() {
     buyButton = findViewById(R.id.buy)
 
     val sku = intent.getStringExtra(REQUEST_SKU)
-    skuType = intent.getStringExtra(REQUEST_SKU_TYPE)
+    skuType = intent.getStringExtra(REQUEST_SKU_TYPE).orEmpty()
     val items = BillingStore.defaultStore(this)
         .getSkuDetails(SkuDetailsParams.newBuilder()
             .setType(skuType)

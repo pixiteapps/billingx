@@ -3,7 +3,7 @@ package com.pixite.android.billingx
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.IntentFilter
-import android.support.v4.content.LocalBroadcastManager
+import androidx.localbroadcastmanager.content.LocalBroadcastManager
 
 interface LocalBroadcastInteractor {
   fun registerReceiver(context: Context, broadcastReceiver: BroadcastReceiver, intentFilter: IntentFilter)

@@ -1,7 +1,7 @@
 package com.pixite.billingx
 
 import android.content.Context
-import android.support.v4.app.FragmentActivity
+import androidx.fragment.app.FragmentActivity
 
 fun Context.injection() = Injection.getInstance(this.applicationContext)
 
