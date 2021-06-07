@@ -218,7 +218,7 @@ class DebugBillingClient(
   }
 
   override fun getConnectionState(): Int {
-    TODO("Not yet implemented")
+    return billingStore.getConnectionState()
   }
 
   override fun queryPurchasesAsync(skuType: String, listener: PurchasesResponseListener) {

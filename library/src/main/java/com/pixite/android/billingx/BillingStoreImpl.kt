@@ -17,6 +17,7 @@ class BillingStoreImpl(private val prefs: SharedPreferences) : BillingStore(){
   companion object {
     internal const val KEY_PURCHASES = "dbc_purchases"
     internal const val KEY_SKU_DETAILS = "dbc_sku_details"
+    internal const val KEY_CONNECTION_STATE = "dbc_connection_state"
   }
 
   override fun getSkuDetails(params: SkuDetailsParams): List<SkuDetails> {
@@ -93,6 +94,15 @@ class BillingStoreImpl(private val prefs: SharedPreferences) : BillingStore(){
     val json = JSONArray()
     acknowledgedPurchases?.forEach { json.put(it.toJSONObject()) }
     prefs.edit().putString(KEY_PURCHASES, json.toString()).apply()
+  }
+
+  override fun setConnectionState(connectionState: Int): BillingStore {
+    prefs.edit().putInt(KEY_CONNECTION_STATE, connectionState).apply()
+    return this
+  }
+
+  override fun getConnectionState(): Int {
+      return prefs.getInt(KEY_CONNECTION_STATE, BillingClient.ConnectionState.CONNECTED)
   }
 
   private fun Purchase.toJSONObject(): JSONObject =
