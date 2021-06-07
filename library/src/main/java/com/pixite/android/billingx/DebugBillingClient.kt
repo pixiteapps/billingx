@@ -17,6 +17,7 @@ import com.android.billingclient.api.InternalPurchasesResult
 import com.android.billingclient.api.PriceChangeConfirmationListener
 import com.android.billingclient.api.PriceChangeFlowParams
 import com.android.billingclient.api.Purchase
+import com.android.billingclient.api.PurchaseHistoryRecord
 import com.android.billingclient.api.PurchaseHistoryResponseListener
 import com.android.billingclient.api.PurchasesResponseListener
 import com.android.billingclient.api.PurchasesUpdatedListener
@@ -92,6 +93,11 @@ class DebugBillingClient(
   @BillingResponseCode
   private fun Int.toBillingResult(): BillingResult {
     return BillingResult.newBuilder().setResponseCode(this).build()
+  }
+
+  @BillingResponseCode
+  private fun Int.toBillingResult(debugMessage: String): BillingResult {
+    return BillingResult.newBuilder().setResponseCode(this).setDebugMessage(debugMessage).build()
   }
 
   private fun createBillingResult(@BillingResponseCode billingResponseCode: Int): BillingResult {
@@ -170,13 +176,37 @@ class DebugBillingClient(
       return
     }
     backgroundExecutor.execute {
-      val history = queryPurchases(skuType)
       listener.onPurchaseHistoryResponse(
-              history.responseCode.toBillingResult(),
+              BillingResponseCode.OK.toBillingResult(),
               billingStore.getPurchaseHistoryRecords(skuType)
       )
     }
   }
+
+  override fun queryPurchasesAsync(skuType: String, listener: PurchasesResponseListener) {
+    if (!isReady) {
+      listener.onQueryPurchasesResponse(
+              BillingResponseCode.SERVICE_DISCONNECTED.toBillingResult(),
+              emptyList()
+      )
+      return
+    }
+    if (skuType.isBlank()) {
+      val debugMessage = "Please provide a valid SKU type."
+      listener.onQueryPurchasesResponse(
+              BillingResponseCode.DEVELOPER_ERROR
+                      .toBillingResult(debugMessage),
+              emptyList()
+      )
+      logger.w(debugMessage)
+      return
+    }
+    listener.onQueryPurchasesResponse(
+            BillingResponseCode.OK.toBillingResult(),
+            billingStore.getPurchases(skuType).purchasesList.orEmpty()
+    )
+  }
+
 
   override fun querySkuDetailsAsync(
       params: SkuDetailsParams, listener: SkuDetailsResponseListener
@@ -219,10 +249,6 @@ class DebugBillingClient(
 
   override fun getConnectionState(): Int {
     return billingStore.getConnectionState()
-  }
-
-  override fun queryPurchasesAsync(skuType: String, listener: PurchasesResponseListener) {
-    TODO("Not yet implemented")
   }
 
   // Supplied for easy Java interop.
