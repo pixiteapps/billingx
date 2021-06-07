@@ -48,7 +48,7 @@ class DebugDrawer : Fragment() {
                 PurchaseBuilder(
                     orderId = "abcd123",
                     packageName = ctx.packageName,
-                    sku = BillingManager.SKU_SUBS,
+                    sku = listOf(BillingManager.SKU_SUBS),
                     purchaseTime = Date().time,
                     purchaseToken = "token-123",
                     signature = "foo",

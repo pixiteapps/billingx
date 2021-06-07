@@ -6,7 +6,7 @@ import org.json.JSONObject
 data class PurchaseBuilder(
         val orderId: String? = null,
         val packageName: String? = null,
-        val sku: String,
+        val sku: List<String>,
         val purchaseTime: Long,
         val purchaseToken: String,
         val signature: String,
@@ -35,7 +35,7 @@ data class PurchaseBuilder(
       return PurchaseBuilder(
               orderId = purchase.orderId,
               packageName = purchase.packageName,
-              sku = purchase.sku,
+              sku = purchase.skus,
               purchaseTime = purchase.purchaseTime,
               purchaseToken = purchase.purchaseToken,
               signature = purchase.signature,

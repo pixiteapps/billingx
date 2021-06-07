@@ -55,8 +55,10 @@ class DebugBillingActivity : AppCompatActivity() {
     price = findViewById(R.id.price)
     buyButton = findViewById(R.id.buy)
 
-    val sku = intent.getStringExtra(REQUEST_SKU)
-    skuType = intent.getStringExtra(REQUEST_SKU_TYPE).orEmpty()
+    val skuDetailsJson = intent.getStringArrayExtra(REQUEST_SKU_DETAILS)
+    val skuDetails: SkuDetails? = skuDetailsJson?.map { SkuDetails(it) }.orEmpty().getOrNull(0)
+    val sku = skuDetails?.sku.orEmpty()
+    skuType = skuDetails?.type.orEmpty()
     val items = BillingStore.defaultStore(this)
         .getSkuDetails(SkuDetailsParams.newBuilder()
             .setType(skuType)

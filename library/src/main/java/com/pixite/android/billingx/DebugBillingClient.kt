@@ -18,7 +18,9 @@ import com.android.billingclient.api.PriceChangeConfirmationListener
 import com.android.billingclient.api.PriceChangeFlowParams
 import com.android.billingclient.api.Purchase
 import com.android.billingclient.api.PurchaseHistoryResponseListener
+import com.android.billingclient.api.PurchasesResponseListener
 import com.android.billingclient.api.PurchasesUpdatedListener
+import com.android.billingclient.api.SkuDetails
 import com.android.billingclient.api.SkuDetailsParams
 import com.android.billingclient.api.SkuDetailsResponseListener
 import com.pixite.android.billingx.DebugBillingClient.ClientState.CLOSED
@@ -153,8 +155,9 @@ class DebugBillingClient(
 
   override fun launchBillingFlow(activity: Activity, params: BillingFlowParams): BillingResult {
     val intent = Intent(activity, DebugBillingActivity::class.java)
-    intent.putExtra(DebugBillingActivity.REQUEST_SKU_TYPE, params.skuType)
-    intent.putExtra(DebugBillingActivity.REQUEST_SKU, params.sku)
+    val skuDetails: List<SkuDetails> = params.zzj()
+    val skuDetailsJson: Array<String> = skuDetails.map { it.originalJson }.toTypedArray()
+    intent.putExtra(DebugBillingActivity.REQUEST_SKU_DETAILS, skuDetailsJson)
     activity.startActivity(intent)
     return BillingResponseCode.OK.toBillingResult()
   }
@@ -212,6 +215,14 @@ class DebugBillingClient(
       billingStore.acknowledgePurchase(acknowledgePurchaseParams.purchaseToken)
       acknowledgePurchaseResponseListener
               .onAcknowledgePurchaseResponse(BillingResponseCode.OK.toBillingResult())
+  }
+
+  override fun getConnectionState(): Int {
+    TODO("Not yet implemented")
+  }
+
+  override fun queryPurchasesAsync(skuType: String, listener: PurchasesResponseListener) {
+    TODO("Not yet implemented")
   }
 
   // Supplied for easy Java interop.
