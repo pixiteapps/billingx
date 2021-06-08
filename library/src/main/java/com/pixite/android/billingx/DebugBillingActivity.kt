@@ -16,7 +16,7 @@ import com.android.billingclient.api.BillingClient.SkuType
 import com.android.billingclient.api.Purchase
 import com.android.billingclient.api.SkuDetails
 import com.android.billingclient.api.SkuDetailsParams
-import java.util.*
+import java.util.Date
 
 class DebugBillingActivity : AppCompatActivity() {
 
@@ -56,22 +56,24 @@ class DebugBillingActivity : AppCompatActivity() {
     buyButton = findViewById(R.id.buy)
 
     val skuDetailsJson = intent.getStringArrayExtra(REQUEST_SKU_DETAILS)
-    val skuDetails: SkuDetails? = skuDetailsJson?.map { SkuDetails(it) }.orEmpty().getOrNull(0)
-    val sku = skuDetails?.sku.orEmpty()
-    skuType = skuDetails?.type.orEmpty()
-    val items = BillingStore.defaultStore(this)
-        .getSkuDetails(SkuDetailsParams.newBuilder()
-            .setType(skuType)
-            .setSkusList(listOf(sku))
-            .build())
-        .associate { it.sku to it }
-    val it = items[sku]
-    if (it == null) {
-      Log.e("DBX", "Unknown $skuType sku: $sku")
+    val skuDetails: List<SkuDetails> = skuDetailsJson?.map { SkuDetails(it) }.orEmpty()
+    skuType = skuDetails.getOrNull(0)?.type.orEmpty()
+    val skus = skuDetails.map { it.sku }
+    if (skuType.isEmpty() || skuDetails.isEmpty()) {
+      Log.e("DBX", "Unknown $skuType skus: $skus")
       finish()
       return
     }
-    item = it
+    val items = BillingStore.defaultStore(this)
+        .getSkuDetails(SkuDetailsParams.newBuilder()
+            .setType(skuType)
+            .setSkusList(skus)
+            .build())
+        .associate { it.sku to it }
+    // TODO If you want to create a Multi-line subscriptions screen, modify this process
+    val firstSku = skus[0]
+    val firstSkuDetails = items[firstSku] ?: return
+    item = firstSkuDetails
     title.text = item.title
     description.text = item.description
     price.text = item.price
