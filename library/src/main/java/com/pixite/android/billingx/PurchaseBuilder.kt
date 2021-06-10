@@ -6,7 +6,7 @@ import org.json.JSONObject
 data class PurchaseBuilder(
         val orderId: String? = null,
         val packageName: String? = null,
-        val sku: List<String>,
+        val skus: List<String>,
         val purchaseTime: Long,
         val purchaseToken: String,
         val signature: String,
@@ -20,7 +20,11 @@ data class PurchaseBuilder(
     val json = JSONObject()
     orderId?.let { json.put("orderId", it) }
     packageName?.let { json.put("packageName", it) }
-    json.put("productId", sku)
+    if (skus.size > 1) {
+      json.put("productIds", skus)
+    } else {
+      json.put("productId", skus.first())
+    }
     json.put("purchaseTime", purchaseTime)
     json.put("purchaseToken", purchaseToken)
     json.put("acknowledged", acknowledged)
@@ -35,7 +39,7 @@ data class PurchaseBuilder(
       return PurchaseBuilder(
               orderId = purchase.orderId,
               packageName = purchase.packageName,
-              sku = purchase.skus,
+              skus = purchase.skus,
               purchaseTime = purchase.purchaseTime,
               purchaseToken = purchase.purchaseToken,
               signature = purchase.signature,
