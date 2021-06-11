@@ -1,6 +1,6 @@
 package com.pixite.billingx
 
-import android.support.v7.app.AppCompatActivity
+import androidx.appcompat.app.AppCompatActivity
 
 open class BaseActivity : AppCompatActivity() {
 }

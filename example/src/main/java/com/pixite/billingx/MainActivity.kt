@@ -1,16 +1,15 @@
 package com.pixite.billingx
 
-import android.arch.lifecycle.Observer
 import android.os.Bundle
-import android.support.design.widget.FloatingActionButton
 import android.view.View
 import android.widget.TextView
-import com.pixite.billingx.util.bindView
+import androidx.lifecycle.Observer
+import com.google.android.material.floatingactionbutton.FloatingActionButton
 
 class MainActivity : BaseActivity() {
 
-  private val purchaseButton: FloatingActionButton by bindView(R.id.purchase_button)
-  private val statusText: TextView by bindView(R.id.status_text)
+  private lateinit var purchaseButton: FloatingActionButton
+  private lateinit var statusText: TextView
 
   private val subsRepo by lazy(LazyThreadSafetyMode.NONE) { injection().subscriptionRepository }
   private val billingManager by lazy(LazyThreadSafetyMode.NONE) { injection().billingManager(this) }
@@ -18,6 +17,8 @@ class MainActivity : BaseActivity() {
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
     setContentView(R.layout.activity_main)
+    purchaseButton = findViewById(R.id.purchase_button)
+    statusText = findViewById(R.id.status_text)
 
     subsRepo.subscribed.observe(this, Observer {
       if (it == true) {

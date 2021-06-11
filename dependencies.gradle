@@ -1,25 +1,27 @@
 ext {
-  compileSdkVersion = 27
-  buildToolsVersion = "27.1.0"
+  compileSdkVersion = 30
+  buildToolsVersion = "30.0.2"
   minSdkVersion = 19
-  targetSdkVersion = 27
+  targetSdkVersion = 30
 
-  def archVersion = '1.1.1'
+  def lifecycleVersion = '2.3.1'
 
   libs = [
 
       androidJson               : 'com.vaadin.external.google:android-json:0.0.20131108.vaadin1',
-      androidTestRunner         : 'com.android.support.test:runner:1.0.1',
-      appCompat                 : 'com.android.support:appcompat-v7:26.1.0',
-      archLifecycleCommon       : "android.arch.lifecycle:common:${archVersion}",
-      archLifecycleCompiler     : "android.arch.lifecycle:compiler:${archVersion}",
-      archLifecycleExtensions   : "android.arch.lifecycle:extensions:${archVersion}",
-      archLifecycleRuntime      : "android.arch.lifecycle:runtime:${archVersion}",
+      androidTestRunner         : 'androidx.test:runner:1.3.0',
+      appCompat                 : 'androidx.appcompat:appcompat:1.2.0',
+      localBroadcastManager     : 'androidx.localbroadcastmanager:localbroadcastmanager:1.0.0',
+      archLifecycleCommon       : "androidx.lifecycle:lifecycle-common:${lifecycleVersion}",
+      archLifecycleCompiler     : "androidx.lifecycle:lifecycle-compiler:${lifecycleVersion}",
+      archLifecycleViewModel    : "androidx.lifecycle:lifecycle-viewmodel-ktx:${lifecycleVersion}",
+      archLifecycleLiveData     : "androidx.lifecycle:lifecycle-livedata-ktx:${lifecycleVersion}",
+      archLifecycleRuntime      : "androidx.lifecycle:lifecycle-runtime:${lifecycleVersion}",
       billingClient             : 'com.android.billingclient:billing:2.2.1',
       billingX                  : project(':library'),
-      constraintLayout          : 'com.android.support.constraint:constraint-layout:1.0.2',
-      design                    : 'com.android.support:design:27.1.0',
-      espressoCore              : 'com.android.support.test.espresso:espresso-core:3.0.1',
+      constraintLayout          : 'androidx.constraintlayout:constraintlayout:2.0.4',
+      design                    : 'com.google.android.material:material:1.3.0',
+      espressoCore              : 'androidx.test.espresso:espresso-core:3.1.0',
       junit                     : 'junit:junit:4.12',
       kotlinStdlib              : "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version",
       kotlinStdlibJdk7          : "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version",

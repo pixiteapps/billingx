@@ -1,7 +1,7 @@
 package com.pixite.billingx
 
-import android.arch.lifecycle.LiveData
-import android.arch.lifecycle.MutableLiveData
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
 
 class SubscriptionRepository {
 

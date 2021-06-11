@@ -20,24 +20,26 @@ class BillingStoreImpl(private val prefs: SharedPreferences) : BillingStore(){
   }
 
   override fun getSkuDetails(params: SkuDetailsParams): List<SkuDetails> {
-    return prefs.getString(KEY_SKU_DETAILS, "[]").toSkuDetailsList()
-        .filter { it.sku in params.skusList && it.type == params.skuType }
+    return prefs.getString(KEY_SKU_DETAILS, "[]")?.toSkuDetailsList()
+        ?.filter { it.sku in params.skusList && it.type == params.skuType }
+        .orEmpty()
   }
 
   override fun getPurchases(@SkuType skuType: String): PurchasesResult {
     return InternalPurchasesResult(BillingClient.BillingResponseCode.OK,
-        prefs.getString(KEY_PURCHASES, "[]").toPurchaseList()
-            .filter { it.signature.endsWith(skuType) })
+        prefs.getString(KEY_PURCHASES, "[]")?.toPurchaseList()
+            ?.filter { it.signature.endsWith(skuType) })
   }
 
   override fun getPurchaseHistoryRecords(skuType: String): List<PurchaseHistoryRecord> {
-    return prefs.getString(KEY_PURCHASES, "[]").toPurchaseHistoryRecordList()
-            .filter { it.signature.endsWith(skuType) }
+    return prefs.getString(KEY_PURCHASES, "[]")?.toPurchaseHistoryRecordList()
+            ?.filter { it.signature.endsWith(skuType) }
+            .orEmpty()
   }
 
   override fun getPurchaseByToken(purchaseToken: String): Purchase? {
-    return prefs.getString(KEY_PURCHASES, "[]").toPurchaseList()
-        .firstOrNull { it.purchaseToken == purchaseToken }
+    return prefs.getString(KEY_PURCHASES, "[]")?.toPurchaseList()
+        ?.firstOrNull { it.purchaseToken == purchaseToken }
   }
 
   override fun addProduct(skuDetails: SkuDetails): BillingStore {
@@ -48,10 +50,10 @@ class BillingStoreImpl(private val prefs: SharedPreferences) : BillingStore(){
   }
 
   override fun removeProduct(sku: String): BillingStore {
-    val allDetails = prefs.getString(KEY_SKU_DETAILS, "[]").toSkuDetailsList()
-    val filtered = allDetails.filter { it.sku != sku }
+    val allDetails = prefs.getString(KEY_SKU_DETAILS, "[]")?.toSkuDetailsList()
+    val filtered = allDetails?.filter { it.sku != sku }
     val json = JSONArray()
-    filtered.forEach { json.put(it.toJSONObject()) }
+    filtered?.forEach { json.put(it.toJSONObject()) }
     prefs.edit().putString(KEY_SKU_DETAILS, json.toString()).apply()
     return this
   }
@@ -69,10 +71,10 @@ class BillingStoreImpl(private val prefs: SharedPreferences) : BillingStore(){
   }
 
   override fun removePurchase(purchaseToken: String): BillingStore {
-    val allPurchases = prefs.getString(KEY_PURCHASES, "[]").toPurchaseList()
-    val filtered = allPurchases.filter { it.purchaseToken != purchaseToken }
+    val allPurchases = prefs.getString(KEY_PURCHASES, "[]")?.toPurchaseList()
+    val filtered = allPurchases?.filter { it.purchaseToken != purchaseToken }
     val json = JSONArray()
-    filtered.forEach { json.put(it.toJSONObject()) }
+    filtered?.forEach { json.put(it.toJSONObject()) }
     prefs.edit().putString(KEY_PURCHASES, json.toString()).apply()
     return this
   }
@@ -83,13 +85,13 @@ class BillingStoreImpl(private val prefs: SharedPreferences) : BillingStore(){
   }
 
   override fun acknowledgePurchase(purchaseToken: String) {
-    val allPurchases = prefs.getString(KEY_PURCHASES, "[]").toPurchaseList()
-    val acknowledgedPurchases = allPurchases.map {
+    val allPurchases = prefs.getString(KEY_PURCHASES, "[]")?.toPurchaseList()
+    val acknowledgedPurchases = allPurchases?.map {
       if (it.purchaseToken != purchaseToken) return@map it
       PurchaseBuilder.from(it).copy(acknowledged = true).build()
     }
     val json = JSONArray()
-    acknowledgedPurchases.forEach { json.put(it.toJSONObject()) }
+    acknowledgedPurchases?.forEach { json.put(it.toJSONObject()) }
     prefs.edit().putString(KEY_PURCHASES, json.toString()).apply()
   }
 

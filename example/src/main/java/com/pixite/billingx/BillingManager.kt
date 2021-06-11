@@ -1,8 +1,8 @@
 package com.pixite.billingx
 
-import android.arch.lifecycle.LiveData
-import android.support.v4.app.FragmentActivity
 import android.util.Log
+import androidx.fragment.app.FragmentActivity
+import androidx.lifecycle.LiveData
 import com.android.billingclient.api.BillingClient
 import com.android.billingclient.api.BillingClient.BillingResponseCode
 import com.android.billingclient.api.BillingClient.SkuType

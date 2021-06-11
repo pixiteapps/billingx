@@ -61,7 +61,7 @@
       style="@style/TextAppearance.AppCompat.Subhead"
       />
 
-  <Switch
+  <androidx.appcompat.widget.SwitchCompat
       android:id="@+id/subscription"
       android:layout_width="match_parent"
       android:layout_height="?attr/listPreferredItemHeight"
