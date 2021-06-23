@@ -5,6 +5,7 @@ import android.app.Application
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.IntentFilter
+import com.android.billingclient.api.BillingClient
 import com.android.billingclient.api.BillingClient.BillingResponseCode
 import com.android.billingclient.api.BillingClient.FeatureType
 import com.android.billingclient.api.BillingClient.SkuType
@@ -103,6 +104,8 @@ class DebugBillingClientTest {
   private val subs2 = SkuDetails(subs2Json)
   private val inapp1 = SkuDetails(inapp1Json)
 
+  private var connectionState: Int = BillingClient.ConnectionState.DISCONNECTED
+
   @Before fun setup() {
     application = mock()
     activity = mock {
@@ -121,6 +124,11 @@ class DebugBillingClientTest {
           else -> throw IllegalArgumentException("Unknown skuType: ${params.skuType}")
         }.filter { it.sku in params.skusList }
       }
+      on { setConnectionState(any()) } doAnswer {
+        connectionState = it.arguments.first() as Int
+        this.mock
+      }
+      on { getConnectionState() } doAnswer { connectionState }
     }
     purchasesUpdatedListener = FakePurchasesUpdatedListener()
     client = DebugBillingClient(activity, purchasesUpdatedListener,

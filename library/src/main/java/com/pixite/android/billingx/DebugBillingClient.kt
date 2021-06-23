@@ -17,16 +17,12 @@ import com.android.billingclient.api.InternalPurchasesResult
 import com.android.billingclient.api.PriceChangeConfirmationListener
 import com.android.billingclient.api.PriceChangeFlowParams
 import com.android.billingclient.api.Purchase
-import com.android.billingclient.api.PurchaseHistoryRecord
 import com.android.billingclient.api.PurchaseHistoryResponseListener
 import com.android.billingclient.api.PurchasesResponseListener
 import com.android.billingclient.api.PurchasesUpdatedListener
 import com.android.billingclient.api.SkuDetails
 import com.android.billingclient.api.SkuDetailsParams
 import com.android.billingclient.api.SkuDetailsResponseListener
-import com.pixite.android.billingx.DebugBillingClient.ClientState.CLOSED
-import com.pixite.android.billingx.DebugBillingClient.ClientState.CONNECTED
-import com.pixite.android.billingx.DebugBillingClient.ClientState.DISCONNECTED
 import java.util.concurrent.Executor
 import java.util.concurrent.Executors
 
@@ -53,15 +49,6 @@ class DebugBillingClient(
   private val context = context.applicationContext
 
   private var billingClientStateListener: BillingClientStateListener? = null
-
-  private enum class ClientState {
-    DISCONNECTED,
-    CONNECTING,
-    CONNECTED,
-    CLOSED
-  }
-
-  private var clientState = DISCONNECTED
 
   private val broadcastReceiver = object : BroadcastReceiver() {
     override fun onReceive(context: Context?, intent: Intent?) {
@@ -104,7 +91,7 @@ class DebugBillingClient(
     return BillingResult.newBuilder().setResponseCode(billingResponseCode).build()
   }
 
-  override fun isReady(): Boolean = clientState == CONNECTED
+  override fun isReady(): Boolean = connectionState == ConnectionState.CONNECTED
 
   override fun startConnection(listener: BillingClientStateListener) {
     if (isReady) {
@@ -112,7 +99,7 @@ class DebugBillingClient(
       return
     }
 
-    if (clientState == CLOSED) {
+    if (connectionState == ConnectionState.CLOSED) {
       logger.w("Client was already closed and can't be reused. Please create another instance.")
       listener.onBillingSetupFinished(BillingResponseCode.DEVELOPER_ERROR.toBillingResult())
       return
@@ -123,14 +110,14 @@ class DebugBillingClient(
         IntentFilter(DebugBillingActivity.RESPONSE_INTENT_ACTION)
     )
     this.billingClientStateListener = listener
-    clientState = CONNECTED
+    this.billingStore.setConnectionState(ConnectionState.CONNECTED)
     listener.onBillingSetupFinished(BillingResponseCode.OK.toBillingResult())
   }
 
   override fun endConnection() {
     localBroadcastInteractor.unregisterReceiver(context, broadcastReceiver)
     billingClientStateListener?.onBillingServiceDisconnected()
-    clientState = CLOSED
+    this.billingStore.setConnectionState(ConnectionState.CLOSED)
   }
 
   override fun isFeatureSupported(feature: String): BillingResult {

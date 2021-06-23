@@ -102,7 +102,7 @@ class BillingStoreImpl(private val prefs: SharedPreferences) : BillingStore(){
   }
 
   override fun getConnectionState(): Int {
-      return prefs.getInt(KEY_CONNECTION_STATE, BillingClient.ConnectionState.CONNECTED)
+      return prefs.getInt(KEY_CONNECTION_STATE, BillingClient.ConnectionState.DISCONNECTED)
   }
 
   private fun Purchase.toJSONObject(): JSONObject =
