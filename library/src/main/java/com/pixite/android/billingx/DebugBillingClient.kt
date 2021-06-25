@@ -148,6 +148,8 @@ class DebugBillingClient(
 
   override fun launchBillingFlow(activity: Activity, params: BillingFlowParams): BillingResult {
     val intent = Intent(activity, DebugBillingActivity::class.java)
+    // FIXME: Once the Play Billing Library has been fixed, modify the following code.
+    // https://issuetracker.google.com/issues/191995386
     val skuDetails: List<SkuDetails> = BillingFlowParams::class.java.declaredMethods
       .find {
         it.genericReturnType.toString() == "java.util.ArrayList<com.android.billingclient.api.SkuDetails>"
