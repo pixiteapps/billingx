@@ -148,7 +148,11 @@ class DebugBillingClient(
 
   override fun launchBillingFlow(activity: Activity, params: BillingFlowParams): BillingResult {
     val intent = Intent(activity, DebugBillingActivity::class.java)
-    val skuDetails: List<SkuDetails> = params.zzj()
+    val skuDetails: List<SkuDetails> = BillingFlowParams::class.java.declaredMethods
+      .find {
+        it.genericReturnType.toString() == "java.util.ArrayList<com.android.billingclient.api.SkuDetails>"
+      }?.let { it.invoke(params) as? List<SkuDetails> }
+      .orEmpty()
     val skuDetailsJson: Array<String> = skuDetails.map { it.originalJson }.toTypedArray()
     intent.putExtra(DebugBillingActivity.REQUEST_SKU_DETAILS, skuDetailsJson)
     activity.startActivity(intent)
