@@ -40,4 +40,8 @@ abstract class BillingStore {
   abstract fun removePurchase(purchaseToken: String): BillingStore
 
   abstract fun acknowledgePurchase(purchaseToken: String)
+
+  abstract fun setConnectionState(@BillingClient.ConnectionState connectionState: Int): BillingStore
+  @BillingClient.ConnectionState
+  abstract fun getConnectionState(): Int
 }

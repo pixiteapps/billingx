@@ -18,12 +18,11 @@ import com.android.billingclient.api.PriceChangeConfirmationListener
 import com.android.billingclient.api.PriceChangeFlowParams
 import com.android.billingclient.api.Purchase
 import com.android.billingclient.api.PurchaseHistoryResponseListener
+import com.android.billingclient.api.PurchasesResponseListener
 import com.android.billingclient.api.PurchasesUpdatedListener
+import com.android.billingclient.api.SkuDetails
 import com.android.billingclient.api.SkuDetailsParams
 import com.android.billingclient.api.SkuDetailsResponseListener
-import com.pixite.android.billingx.DebugBillingClient.ClientState.CLOSED
-import com.pixite.android.billingx.DebugBillingClient.ClientState.CONNECTED
-import com.pixite.android.billingx.DebugBillingClient.ClientState.DISCONNECTED
 import java.util.concurrent.Executor
 import java.util.concurrent.Executors
 
@@ -50,15 +49,6 @@ class DebugBillingClient(
   private val context = context.applicationContext
 
   private var billingClientStateListener: BillingClientStateListener? = null
-
-  private enum class ClientState {
-    DISCONNECTED,
-    CONNECTING,
-    CONNECTED,
-    CLOSED
-  }
-
-  private var clientState = DISCONNECTED
 
   private val broadcastReceiver = object : BroadcastReceiver() {
     override fun onReceive(context: Context?, intent: Intent?) {
@@ -92,11 +82,16 @@ class DebugBillingClient(
     return BillingResult.newBuilder().setResponseCode(this).build()
   }
 
+  @BillingResponseCode
+  private fun Int.toBillingResult(debugMessage: String): BillingResult {
+    return BillingResult.newBuilder().setResponseCode(this).setDebugMessage(debugMessage).build()
+  }
+
   private fun createBillingResult(@BillingResponseCode billingResponseCode: Int): BillingResult {
     return BillingResult.newBuilder().setResponseCode(billingResponseCode).build()
   }
 
-  override fun isReady(): Boolean = clientState == CONNECTED
+  override fun isReady(): Boolean = connectionState == ConnectionState.CONNECTED
 
   override fun startConnection(listener: BillingClientStateListener) {
     if (isReady) {
@@ -104,7 +99,7 @@ class DebugBillingClient(
       return
     }
 
-    if (clientState == CLOSED) {
+    if (connectionState == ConnectionState.CLOSED) {
       logger.w("Client was already closed and can't be reused. Please create another instance.")
       listener.onBillingSetupFinished(BillingResponseCode.DEVELOPER_ERROR.toBillingResult())
       return
@@ -115,14 +110,14 @@ class DebugBillingClient(
         IntentFilter(DebugBillingActivity.RESPONSE_INTENT_ACTION)
     )
     this.billingClientStateListener = listener
-    clientState = CONNECTED
+    this.billingStore.setConnectionState(ConnectionState.CONNECTED)
     listener.onBillingSetupFinished(BillingResponseCode.OK.toBillingResult())
   }
 
   override fun endConnection() {
     localBroadcastInteractor.unregisterReceiver(context, broadcastReceiver)
     billingClientStateListener?.onBillingServiceDisconnected()
-    clientState = CLOSED
+    this.billingStore.setConnectionState(ConnectionState.CLOSED)
   }
 
   override fun isFeatureSupported(feature: String): BillingResult {
@@ -153,8 +148,15 @@ class DebugBillingClient(
 
   override fun launchBillingFlow(activity: Activity, params: BillingFlowParams): BillingResult {
     val intent = Intent(activity, DebugBillingActivity::class.java)
-    intent.putExtra(DebugBillingActivity.REQUEST_SKU_TYPE, params.skuType)
-    intent.putExtra(DebugBillingActivity.REQUEST_SKU, params.sku)
+    // FIXME: Once the Play Billing Library has been fixed, modify the following code.
+    // https://issuetracker.google.com/issues/191995386
+    val skuDetails: List<SkuDetails> = BillingFlowParams::class.java.declaredMethods
+      .find {
+        it.genericReturnType.toString() == "java.util.ArrayList<com.android.billingclient.api.SkuDetails>"
+      }?.let { it.invoke(params) as? List<SkuDetails> }
+      .orEmpty()
+    val skuDetailsJson: Array<String> = skuDetails.map { it.originalJson }.toTypedArray()
+    intent.putExtra(DebugBillingActivity.REQUEST_SKU_DETAILS, skuDetailsJson)
     activity.startActivity(intent)
     return BillingResponseCode.OK.toBillingResult()
   }
@@ -167,13 +169,37 @@ class DebugBillingClient(
       return
     }
     backgroundExecutor.execute {
-      val history = queryPurchases(skuType)
       listener.onPurchaseHistoryResponse(
-              history.responseCode.toBillingResult(),
+              BillingResponseCode.OK.toBillingResult(),
               billingStore.getPurchaseHistoryRecords(skuType)
       )
     }
   }
+
+  override fun queryPurchasesAsync(skuType: String, listener: PurchasesResponseListener) {
+    if (!isReady) {
+      listener.onQueryPurchasesResponse(
+              BillingResponseCode.SERVICE_DISCONNECTED.toBillingResult(),
+              emptyList()
+      )
+      return
+    }
+    if (skuType.isBlank()) {
+      val debugMessage = "Please provide a valid SKU type."
+      listener.onQueryPurchasesResponse(
+              BillingResponseCode.DEVELOPER_ERROR
+                      .toBillingResult(debugMessage),
+              emptyList()
+      )
+      logger.w(debugMessage)
+      return
+    }
+    listener.onQueryPurchasesResponse(
+            BillingResponseCode.OK.toBillingResult(),
+            billingStore.getPurchases(skuType).purchasesList.orEmpty()
+    )
+  }
+
 
   override fun querySkuDetailsAsync(
       params: SkuDetailsParams, listener: SkuDetailsResponseListener
@@ -212,6 +238,10 @@ class DebugBillingClient(
       billingStore.acknowledgePurchase(acknowledgePurchaseParams.purchaseToken)
       acknowledgePurchaseResponseListener
               .onAcknowledgePurchaseResponse(BillingResponseCode.OK.toBillingResult())
+  }
+
+  override fun getConnectionState(): Int {
+    return billingStore.getConnectionState()
   }
 
   // Supplied for easy Java interop.

@@ -62,7 +62,9 @@ class BillingManager(private val activity: FragmentActivity,
       // load local purchases from the cache
       executors.networkIO.execute {
         val purchases = billingClient.queryPurchases(SkuType.SUBS)
-        val validPurchase = purchases.purchasesList?.find { SKU_SUBS == it.sku }
+        val validPurchase = purchases.purchasesList?.find { purchase ->
+          purchase.skus.any { it == SKU_SUBS }
+        }
         if (validPurchase != null) {
           subscriptionRepo.setSubscribed(true)
         } else {
@@ -87,7 +89,9 @@ class BillingManager(private val activity: FragmentActivity,
     }
 
     val validSkus = listOf(SKU_SUBS)
-    val validPurchases = purchasesList?.filter { validSkus.contains(it.sku) }
+    val validPurchases = purchasesList.filter { purchase ->
+      purchase.skus.any { validSkus.contains(it) }
+    }
 
     // look for active subscriptions
     val activeSubscription = validPurchases.find { it.isAutoRenewing }
@@ -97,7 +101,7 @@ class BillingManager(private val activity: FragmentActivity,
     }
 
     // look for any other subscriptions that are still in their period
-    val distinctSkus = validPurchases.map { it.sku }.distinct()
+    val distinctSkus = validPurchases.flatMap { it.skus }.distinct()
     if (distinctSkus.isEmpty()) {
       callback(null)
       return
@@ -105,7 +109,9 @@ class BillingManager(private val activity: FragmentActivity,
 
     querySkuDetails(distinctSkus) { details ->
       validPurchases.forEach { purchase ->
-        val purchaseDetails = details.find { it.sku == purchase.sku }
+        val purchaseDetails = details.find { skuDetails ->
+          purchase.skus.any { it == skuDetails.sku }
+        }
         val purchaseTime = Instant.ofEpochMilli(purchase.purchaseTime)
 
         // first check if they're still in the trial period
