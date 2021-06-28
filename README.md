@@ -38,6 +38,7 @@ object BillingClientFactory {
   fun createBillingClient(activity: Activity, updateListener: PurchasesUpdatedListener): BillingClient {
     return BillingClient
         .newBuilder(activity)
+        .enablePendingPurchases()
         .setListener(updateListener)
         .build()
   }
@@ -120,8 +121,8 @@ Import the billingx library only into your debug builds and use the standard bil
 in your release builds. 
 
 ```groovy
-debugImplementation 'com.pixiteapps.billingx:billingx:0.8.2'
-releaseImplementation 'com.android.billingclient:billing:1.0'
+debugImplementation 'com.pixiteapps.billingx:billingx:0.9.0'
+releaseImplementation 'com.android.billingclient:billing:4.0.0'
 ```
 
 ## License
