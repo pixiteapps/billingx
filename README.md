@@ -1,6 +1,14 @@
 # BillingX: Billing Extensions
 
-[![CircleCI](https://circleci.com/gh/pixiteapps/billingx.svg?style=svg)](https://circleci.com/gh/pixiteapps/billingx)
+<table>
+  <tr>
+    <td>
+        <h3>DEPRECATED</h3>
+        BillingX is deprecated. No more development will be taking place. Thanks for all your support!
+    </td>
+  </tr>
+</table>
+<br/><br/>
 
 Extensions for the [Play Billing Library](https://developer.android.com/google/play/billing/billing_java_kotlin)
 to allow fake purchases and transaction management in debug builds.
